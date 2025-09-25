@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 
-class ExampleLoss(nn.Module):
+class CTCLoss(nn.Module):
     """
     Example of a loss function to use.
     """
