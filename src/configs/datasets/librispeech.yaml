@@ -1,0 +1,10 @@
+train:
+  _target_: torchaudio.datasets.LIBRISPEECH
+  url : "train-clean-100" 
+val:
+  _target_: torchaudio.datasets.LIBRISPEECH
+  url: "dev-clean"
+test:
+  _target_: torchaudio.datasets.LIBRISPEECH
+  url: "test-clean"
+  
