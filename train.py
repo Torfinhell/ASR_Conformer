@@ -23,17 +23,26 @@ def main(config):
     )
     dataloader=instantiate(
         config.dataloader,
-        dataset=librispeech_dataset,
+        dataset=librispeech_dataset, #change spectogram
         collate_fn=collate_fn,
         drop_last=(config.trainer.dataset_partition=="train"),
         shuffle=(config.trainer.dataset_partition=="train"),
         )
-    batch = next(iter(dataloader))
+    model=instantiate(
+        config.model
+    )
+    optimizer=instantiate(
+        config.optimizer,
+        params=model.parameters(),
+    )
+    criterion=instantiate(
+        config.loss_function
+    )
     trainer=BaseTrainer(
-        model=None, 
-        criterion=None,
+        model=model, 
+        criterion=criterion,
         metrics=None, 
-        optimizers=None,
+        optimizer=optimizer,
         lr_scheduler=None,
         config=config,
         device=config.trainer.device,
@@ -41,6 +50,7 @@ def main(config):
         logger=None,
         writer=None,
         epoch_len=config.trainer.epoch_len,
+        n_epochs=config.trainer.n_epochs,
         batch_transforms=None,
     )
     trainer.train()

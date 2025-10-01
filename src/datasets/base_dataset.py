@@ -21,20 +21,28 @@ class BaseDataset(Dataset):
             root=os.path.expanduser("~/.cache"),
             download=True,
         )  
+        self.n_mels=config.model.n_features
+        self.n_fft=config.trainer.n_fft
         self.dataset=filter_records_by_length(self.dataset)
     def __len__(self):
         return len(self.dataset)
     def __getitem__(self, index):
         sr=self.dataset[index][1]
         wav_tensor=self.dataset[index][0]
+        assert sr==self.base_sample_rate
         if(sr!=self.base_sample_rate):
             wav_tensor=F.resample(wav_tensor, sr, self.base_sample_rate, lowpass_filter_width=6)
         text=self.dataset[index][2]
-        text=self.text_encoder.encode(text)
-        return wav_tensor.squeeze(0), text.squeeze(0)
-
-
-def filter_records_by_length(dataset):
+        text_encoded=self.text_encoder.encode(text)
+        spectorgram=torchaudio.transforms.MelSpectrogram(sample_rate=self.base_sample_rate, n_mels=self.n_mels, n_fft=self.n_fft)(wav_tensor)
+        return {"audio":wav_tensor.squeeze(0), 
+                "text_encoded":text_encoded.squeeze(0),
+                "spectorgram":spectorgram,
+                "spectorgram_length":len(spectorgram),
+                "text":text
+                }
+        
+def filter_records_by_length(dataset): #change
     return dataset
     
         
