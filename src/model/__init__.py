@@ -1,1 +1,2 @@
-from src.model.my_model import BaseLineModel
+from src.model.baseline import BaseLineModel
+from src.model.conformer import Conformer

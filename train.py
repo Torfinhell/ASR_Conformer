@@ -11,23 +11,25 @@ import torchaudio
 import torch
 from torch.utils.data import DataLoader
 from hydra.utils import instantiate
+from tqdm import tqdm
 @hydra.main(version_base=None, config_path="src/configs", config_name="baseline")
 def main(config):
     text_encoder=instantiate(config.text_encoder)
-    librispeech_dataset = BaseDataset(
-        text_encoder=text_encoder,
-        # shuffle_index=True,
-        max_audio_length=config.trainer.max_audio_length,
-        config=config,
-        part="test"
-    )
-    dataloader=instantiate(
-        config.dataloader,
-        dataset=librispeech_dataset, #change spectogram
-        collate_fn=collate_fn,
-        drop_last=(config.trainer.dataset_partition=="train"),
-        shuffle=(config.trainer.dataset_partition=="train"),
+    dataloaders={}
+    for part in {"train", "test"}:
+        dataset= BaseDataset(
+            text_encoder=text_encoder,
+            max_audio_length=config.trainer.max_audio_length,
+            config=config,
+            part=part
         )
+        dataloaders[part]=instantiate(
+            config.dataloader,
+            dataset=dataset, 
+            collate_fn=collate_fn,
+            drop_last=(config.trainer.dataset_partition=="train"),
+            shuffle=(config.trainer.dataset_partition=="train"),
+            )
     model=instantiate(
         config.model
     )
@@ -38,15 +40,18 @@ def main(config):
     criterion=instantiate(
         config.loss_function
     )
+    metrics=instantiate(
+        config.metrics
+    )
     trainer=BaseTrainer(
         model=model, 
         criterion=criterion,
-        metrics=None, 
+        metrics=metrics, 
         optimizer=optimizer,
         lr_scheduler=None,
         config=config,
         device=config.trainer.device,
-        dataloaders=dataloader,
+        dataloaders=dataloaders,
         logger=None,
         writer=None,
         epoch_len=config.trainer.epoch_len,

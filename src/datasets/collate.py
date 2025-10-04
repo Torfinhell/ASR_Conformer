@@ -10,7 +10,9 @@ def collate_fn(dataset_items:list[dict]):
     text_encoded_lengths=[len(text) for text in encoded_texts]
     max_len_spec=max([spectogram.shape[2] for spectogram in spectorgrams])
     new_spectorgrams=[F.pad(spectorgram, (0,max_len_spec-spectorgram.shape[2],0,0,0,0)).squeeze().tolist() for spectorgram in spectorgrams]
-    input_lengths=[spectogram.shape[2] for spectogram in spectorgrams]
+    spectogram_lengths=[spectogram.shape[2] for spectogram in spectorgrams]
+    text=[item["text"] for item in dataset_items]
     return  {"spectorgram": torch.tensor(new_spectorgrams),"text_encoded": torch.tensor(new_encoded_texts),
               "text_encoded_lengths":torch.tensor(text_encoded_lengths),
-             "input_lengths":torch.tensor(input_lengths)}
+             "spectogram_lengths":torch.tensor(spectogram_lengths),
+             "text":text}

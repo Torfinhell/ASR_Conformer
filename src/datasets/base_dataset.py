@@ -6,7 +6,6 @@ from hydra.utils import instantiate
 class BaseDataset(Dataset):
     def __init__(
             self, 
-            url="test-clean",
             text_encoder=None,
             max_text_length=None,
             max_audio_length=None,
@@ -17,11 +16,11 @@ class BaseDataset(Dataset):
         self.text_encoder=text_encoder
         self.base_sample_rate=config.trainer.base_sample_rate if config is not None else 16000
         self.dataset = instantiate(
-            config.datasets.train, 
+            config.datasets[part], 
             root=os.path.expanduser("~/.cache"),
             download=True,
         )  
-        self.n_mels=config.model.n_features
+        self.n_mels=config.model.model_dim
         self.n_fft=config.trainer.n_fft
         self.dataset=filter_records_by_length(self.dataset)
     def __len__(self):

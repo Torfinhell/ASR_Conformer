@@ -1,0 +1,4 @@
+- _target_: src.metrics.ArgmaxCERMetric
+  text_encoder: ${text_encoder}
+- _target_: src.metrics.ArgmaxWERMetric
+  text_encoder: ${text_encoder}

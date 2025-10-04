@@ -1,0 +1,15 @@
+_target_: src.model.Conformer
+model_dim: 132
+num_tokens: 28
+num_attention_heads: 4
+enc_dim: 16
+dim_head: 64
+conv_kernel_size: 31
+num_conformer_blocks: 4 
+input_dropout: 0.1
+conv_dropout: 0.1
+attention_dropout: 0.1
+ffn_dropout: 0.1
+ffn_expansion_factor: 4
+conv_expansion_factor: 2
+is_subsample: False

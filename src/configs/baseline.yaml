@@ -1,6 +1,6 @@
 defaults:
-  - model: baseline
-  - metrics: null 
+  - model: conformer
+  - metrics: basic 
   - device: null
   - datasets: librispeech
   - dataloader: basic
@@ -22,7 +22,7 @@ lr_scheduler:
 loss_function:
   _target_: src.loss.CTCLossWrapper
 trainer:
-  n_epochs: 50
+  n_epochs: 250
   epoch_len: 200
   skip_oom: null
   max_audio_length: 20.0
@@ -30,5 +30,5 @@ trainer:
   dataset_partition: "test"
   device: "cuda:0"
   base_sample_rate: 16000
-  device_tensors: ["spectorgram", "input_lengths", "text_encoded_lengths", "text_encoded"]
+  device_tensors: ["spectorgram", "spectogram_lengths", "text_encoded_lengths", "text_encoded"]
   n_fft: 1000

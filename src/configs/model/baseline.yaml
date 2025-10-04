@@ -1,4 +1,4 @@
 _target_: src.model.BaseLineModel
-n_features: 128
+model_dim: 128
 fc_hidden: 512
-n_tokens: 1000
+n_tokens: 28
