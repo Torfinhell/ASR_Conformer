@@ -41,26 +41,30 @@ class BaseTrainer:
         self.model=self.model.to(self.device)
         for e in range(self.n_epochs):
             losses=[]
-            for idx, batch in tqdm(enumerate(self.dataloaders["train"]), desc=f"Processin epoch {e} in train", total=len(self.dataloaders["train"])):
-                self.optimizer.zero_grad()
-                batch=move_to_device(batch, self.device_tensors, self.device)
-                pred=self.model(**batch)
-                batch.update(pred)
-                loss=self.criterion(**batch)
-                batch.update(loss)
-                batch["loss"].backward()
-                self.optimizer.step()
-                losses.append(batch["loss"].item())
+            with tqdm(enumerate(self.dataloaders["train"]), desc=f"Processing epoch {e} in train", total=len(self.dataloaders["train"]), position=0) as pbar_train:
+                for idx, batch in pbar_train:
+                    self.optimizer.zero_grad()
+                    batch=move_to_device(batch, self.device_tensors, self.device)
+                    pred=self.model(**batch)
+                    batch.update(pred)
+                    loss=self.criterion(**batch)
+                    batch.update(loss)
+                    batch["loss"].backward()
+                    self.optimizer.step()
+                    losses.append(batch["loss"].item())
+                    if(idx%500==0):
+                        torch.cuda.empty_cache()
             print(f"Avg Loss in {e} epoch is:{sum(losses)/len(losses)}")
             result={}
             with torch.no_grad():
-                for idx, batch in tqdm(enumerate(self.dataloaders["test"]), desc=f"Processin epoch {e} in test", total=len(self.dataloaders["test"])):
-                    for met in self.met:
-                        batch=move_to_device(batch, self.device_tensors, self.device)
-                        pred=self.model(**batch)
-                        batch.update(pred)
-                        result[f"{met.name}_sum"]=result.get(f"{met.name}_sum",0)+met(**batch)
-                        result[f"{met.name}_count"]=result.get(f"{met.name}_count",0)+1
+                 with tqdm(enumerate(self.dataloaders["test"]), desc=f"Processing epoch {e} in test", total=len(self.dataloaders["test"]), position=1, leave=False) as pbar_test:
+                    for idx, batch in pbar_test:
+                        for met in self.met:
+                            batch=move_to_device(batch, self.device_tensors, self.device)
+                            pred=self.model(**batch)
+                            batch.update(pred)
+                            result[f"{met.name}_sum"]=result.get(f"{met.name}_sum",0)+met(**batch)
+                            result[f"{met.name}_count"]=result.get(f"{met.name}_count",0)+1
             for met in self.met:
                 print(f"Metric {met.name} in {e} epoch is:{result[f"{met.name}_sum"]/result[f"{met.name}_count"]}")
             

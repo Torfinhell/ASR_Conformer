@@ -1,7 +1,6 @@
 defaults:
   - model: conformer
-  - metrics: basic 
-  - device: null
+  - metrics: BeamSearch 
   - datasets: librispeech
   - dataloader: basic
   - writer: null
@@ -25,10 +24,11 @@ trainer:
   n_epochs: 250
   epoch_len: 200
   skip_oom: null
-  max_audio_length: 20.0
+  max_audio_length: 20.0 #???
   max_text_length: 100
   dataset_partition: "test"
   device: "cuda:0"
   base_sample_rate: 16000
   device_tensors: ["spectorgram", "spectogram_lengths", "text_encoded_lengths", "text_encoded"]
-  n_fft: 1000
+  hop_length: 128
+  n_fft: 1024

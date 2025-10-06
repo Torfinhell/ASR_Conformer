@@ -1,15 +1,14 @@
-import torch
 from torch import nn
 class BaseLineModel(nn.Module):
     def __init__(self, model_dim, n_tokens, fc_hidden=512):
         super().__init__()
         self.net = nn.Sequential(
             # input Size:(N, in_feauterse, time_len)
-            nn.Linear(imodel_dim=model_dim, out_features=fc_hidden),
+            nn.Linear(model_dim, fc_hidden),
             nn.ReLU(),
-            nn.Linear(imodel_dim=fc_hidden, out_features=fc_hidden),
+            nn.Linear(fc_hidden, fc_hidden),
             nn.ReLU(),
-            nn.Linear(imodel_dim=fc_hidden, out_features=n_tokens),
+            nn.Linear(fc_hidden, n_tokens),
         )
     def forward(self, spectorgram, spectogram_lengths, **batch):
         output_net=self.net(spectorgram.transpose(1, 2))

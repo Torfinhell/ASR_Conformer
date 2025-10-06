@@ -1,0 +1,14 @@
+- _target_: src.metrics.ArgmaxCERMetric
+  text_encoder: ${text_encoder}
+- _target_: src.metrics.ArgmaxWERMetric
+  text_encoder: ${text_encoder}
+- _target_: src.metrics.BeamSearchCERMetric
+  text_encoder: ${text_encoder}
+  beam_size: 6
+  beam_depth: 2
+  take_first_chars: 5
+- _target_: src.metrics.BeamSearchWERMetric
+  text_encoder: ${text_encoder}
+  beam_size: 6
+  beam_depth: 2
+  take_first_chars: 5
