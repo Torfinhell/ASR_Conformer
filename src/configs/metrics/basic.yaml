@@ -1,0 +1,19 @@
+train: # metrics that are calculated during training (eval). BeamSearch(and LLM) is too long to be here
+  []
+inference: # metrics that are calculated during inference (eval)
+  - _target_: src.metrics.ArgmaxCERMetric
+    name: "CER_(Argmax)"
+  - _target_: src.metrics.ArgmaxWERMetric
+    name: "WER_(Argmax)"
+  - _target_: src.metrics.BeamSearchCERMetric
+    text_encoder: ${text_encoder}
+    beam_size: 6
+    beam_depth: 2
+    take_first_chars: 5
+    name: "CER_(BeamSearch)"
+  - _target_: src.metrics.BeamSearchWERMetric
+    text_encoder: ${text_encoder}
+    beam_size: 6
+    beam_depth: 2
+    take_first_chars: 5
+    name: "WER_(BeamSearch)"

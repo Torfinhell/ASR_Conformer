@@ -38,7 +38,7 @@ class Conformer(nn.Module):
     def __init__(
             self,
             model_dim,
-            num_tokens,
+            n_tokens,
             num_attention_heads,
             dim_head,
             enc_dim,
@@ -74,15 +74,15 @@ class Conformer(nn.Module):
                 dim_head=dim_head
             ) for _ in range(num_conformer_blocks)
         ])
-        self.mlp=nn.Linear(model_dim, num_tokens, bias=False)
-    def forward(self,spectorgram, spectogram_lengths, **batch):
+        self.mlp=nn.Linear(model_dim, n_tokens, bias=False)
+    def forward(self,spectrogram, spectrogram_lengths, **batch):
         if(self.do_downsample):
-            subsampled_specs, spectogram_lengths=self.conv_subsampling(spectorgram.transpose(1, 2), spectogram_lengths)
+            subsampled_specs, spectrogram_lengths=self.conv_subsampling(spectrogram.transpose(1, 2), spectrogram_lengths)
         else:
-            subsampled_specs, spectogram_lengths=spectorgram.transpose(1, 2), spectogram_lengths
+            subsampled_specs, spectrogram_lengths=spectrogram.transpose(1, 2), spectrogram_lengths
         before_conformers=self.dropout(self.linear1(subsampled_specs))
         after_conformers=self.conformer_blocks(before_conformers)
         probs=nn.functional.softmax(self.mlp(after_conformers), dim=-1)
         log_probs = nn.functional.log_softmax(self.mlp(after_conformers), dim=-1)
-        return {"log_probs":log_probs, "probs":probs, "log_probs_length":spectogram_lengths}
+        return {"log_probs":log_probs, "probs":probs, "log_probs_length":spectrogram_lengths}
         

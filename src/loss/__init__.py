@@ -1,1 +1,1 @@
-from src.loss.loss import CTCLossWrapper
+from src.loss.ctc_loss import CTCLossWrapper

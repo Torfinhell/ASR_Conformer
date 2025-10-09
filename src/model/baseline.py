@@ -10,7 +10,7 @@ class BaseLineModel(nn.Module):
             nn.ReLU(),
             nn.Linear(fc_hidden, n_tokens),
         )
-    def forward(self, spectorgram, spectogram_lengths, **batch):
-        output_net=self.net(spectorgram.transpose(1, 2))
+    def forward(self, spectrogram, spectrogram_lengths, **batch):
+        output_net=self.net(spectrogram.transpose(1, 2))
         log_probs=nn.functional.log_softmax(output_net, dim=-1)
-        return {"log_probs":log_probs, "log_probs_length":spectogram_lengths}
+        return {"log_probs":log_probs, "log_probs_length":spectrogram_lengths}

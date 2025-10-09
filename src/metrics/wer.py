@@ -2,30 +2,26 @@ from typing import List
 
 import torch
 from torch import Tensor
-
-import editdistance
-from collections import defaultdict
 import numpy as np
-def calc_wer(target_text:str, pred_text:str):
-    assert len(target_text)
-    return editdistance.eval(target_text.split(), pred_text.split())/len(target_text.split())
-
+from src.metrics.base_metric import BaseMetric
+from src.metrics.utils import calc_wer
+from collections import defaultdict
 class ArgmaxWERMetric():
-    def __init__(self, text_encoder):
-        self.name="ARGMAX_WER"
+    def __init__(self, text_encoder, name):
+        self.name=name
         self.text_encoder=text_encoder
     def __call__(self, log_probs, log_probs_length, text, **batch):
         wers=[]
         predictions=torch.argmax(log_probs.cpu(), dim=-1).numpy()
         lengths=log_probs_length.cpu().detach().numpy()
         for ind_vec, length, target_text in zip(predictions, lengths, text):
-            target_text=self.text_encoder.normalize(target_text)
+            target_text=self.text_encoder.normalize_text(target_text)
             pred_text=self.text_encoder.ctc_decode(ind_vec[:length])
             wers.append(calc_wer(target_text, pred_text))   
         return sum(wers)/len(wers)
 class BeamSearchWERMetric():
-    def __init__(self, text_encoder, beam_size, beam_depth=1, take_first_chars=28):
-        self.name="BEAM_WER"
+    def __init__(self, text_encoder, beam_size,name, beam_depth=1, take_first_chars=28):
+        self.name=name
         self.text_encoder=text_encoder
         self.beam_size=beam_size
         self.beam_depth=beam_depth
@@ -35,9 +31,10 @@ class BeamSearchWERMetric():
         predictions=probs.cpu().numpy()
         lengths=log_probs_length.cpu().detach().numpy()
         for prob_vec, length, target_text in zip(predictions, lengths, text):
-            target_text=self.text_encoder.normalize(target_text)
+            target_text=self.text_encoder.normalize_text(target_text)
             dp=self.ctc_beam_search(prob_vec, length)
-            beam_pred = list(self.truncate_beams(dp, 1).keys())[0][0]
+            ans_beam = self.truncate_beams(dp, 1)
+            beam_pred = list(self.truncate_beams(dp, 1).keys())[0][0] if ans_beam else ""
             wers.append(calc_wer(target_text, beam_pred))   
         return sum(wers)/len(wers)
     def ctc_beam_search(self,probs, length):

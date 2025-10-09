@@ -1,6 +1,5 @@
 _target_: src.model.Conformer
 model_dim: 132
-num_tokens: 28
 num_attention_heads: 4
 enc_dim: 16
 dim_head: 64

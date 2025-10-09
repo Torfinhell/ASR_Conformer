@@ -1,63 +1,89 @@
+import warnings
+
 import hydra
-from src.trainer import BaseTrainer
-from src.datasets import collate_fn, BaseDataset
-import soundfile as sf
-from datasets import load_dataset
-import librosa
-from IPython import display
-import matplotlib.pyplot as plt
-import os
-import torchaudio
 import torch
-from torch.utils.data import DataLoader
 from hydra.utils import instantiate
-from tqdm import tqdm
+from omegaconf import OmegaConf
+
+from src.datasets.data_utils import get_dataloaders
+from src.trainer import Trainer
+from src.utils.init_utils import set_random_seed, setup_saving_and_logging
+
+warnings.filterwarnings("ignore", category=UserWarning)
+
+
 @hydra.main(version_base=None, config_path="src/configs", config_name="baseline")
 def main(config):
-    text_encoder=instantiate(config.text_encoder)
-    dataloaders={}
-    for part in {"train", "test"}:
-        dataset= BaseDataset(
-            text_encoder=text_encoder,
-            max_audio_length=config.trainer.max_audio_length,
-            config=config,
-            part=part
-        )
-        dataloaders[part]=instantiate(
-            config.dataloader,
-            dataset=dataset, 
-            collate_fn=collate_fn,
-            drop_last=(config.trainer.dataset_partition=="train"),
-            shuffle=(config.trainer.dataset_partition=="train"),
+    """
+    Main script for training. Instantiates the model, optimizer, scheduler,
+    metrics, logger, writer, and dataloaders. Runs Trainer to train and
+    evaluate the model.
+
+    Args:
+        config (DictConfig): hydra experiment config.
+    """
+    set_random_seed(config.trainer.seed)
+
+    project_config = OmegaConf.to_container(config)
+    logger = setup_saving_and_logging(config)
+    writer = instantiate(config.writer, logger, project_config)
+
+    if config.trainer.device == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    else:
+        device = config.trainer.device
+
+    # setup text_encoder
+    text_encoder = instantiate(config.text_encoder)
+
+    # setup data_loader instances
+    # batch_transforms should be put on device
+    dataloaders, batch_transforms = get_dataloaders(config, text_encoder, device)
+
+    # build model architecture, then print to console
+    model = instantiate(config.model, n_tokens=len(text_encoder)).to(device)
+    logger.info(model)
+
+    # get function handles of loss and metrics
+    loss_function = instantiate(config.loss_function).to(device)
+
+    metrics = {"train": [], "inference": []}
+    for metric_type in ["train", "inference"]:
+        for metric_config in config.metrics.get(metric_type, []):
+            # use text_encoder in metrics
+            metrics[metric_type].append(
+                instantiate(metric_config, text_encoder=text_encoder)
             )
-    model=instantiate(
-        config.model
-    )
-    optimizer=instantiate(
-        config.optimizer,
-        params=model.parameters(),
-    )
-    criterion=instantiate(
-        config.loss_function
-    )
-    metrics=instantiate(
-        config.metrics
-    )
-    trainer=BaseTrainer(
-        model=model, 
-        criterion=criterion,
-        metrics=metrics, 
+
+    # build optimizer, learning rate scheduler
+    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
+    optimizer = instantiate(config.optimizer, params=trainable_params)
+    epoch_len=len(dataloaders["train"])
+    lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer, steps_per_epoch=epoch_len)
+
+    # epoch_len = number of iterations for iteration-based training
+    # epoch_len = None #for epoch-based training
+    # epoch_len = config.trainer.get("epoch_len")
+
+    trainer = Trainer(
+        model=model,
+        criterion=loss_function,
+        metrics=metrics,
         optimizer=optimizer,
-        lr_scheduler=None,
+        lr_scheduler=lr_scheduler,
+        text_encoder=text_encoder,
         config=config,
-        device=config.trainer.device,
+        device=device,
         dataloaders=dataloaders,
-        logger=None,
-        writer=None,
-        epoch_len=config.trainer.epoch_len,
-        n_epochs=config.trainer.n_epochs,
-        batch_transforms=None,
+        epoch_len=epoch_len,
+        logger=logger,
+        writer=writer,
+        batch_transforms=batch_transforms,
+        skip_oom=config.trainer.get("skip_oom", True),
     )
+
     trainer.train()
-if __name__=="__main__":
+
+
+if __name__ == "__main__":
     main()
