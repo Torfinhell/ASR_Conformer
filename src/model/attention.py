@@ -4,7 +4,7 @@ import torch
 from einops import rearrange, repeat
 from torch import nn
 
-from .attention import RelativePosEmb
+from .embedding import RelativePosEmb
 
 
 class MultiHeadSelfAttention(nn.Module):

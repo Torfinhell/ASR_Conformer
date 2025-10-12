@@ -38,8 +38,8 @@ class Trainer(BaseTrainer):
         metric_funcs = self.metrics["inference"]
         if self.is_train:
             metric_funcs = self.metrics["train"]
-            if batch_id % self.grad_acum == 0:
-                self.optimizer.zero_grad()
+            # if batch_id % self.grad_acum == 0:
+            self.optimizer.zero_grad()
 
         outputs = self.model(**batch)
         batch.update(outputs)
@@ -50,8 +50,8 @@ class Trainer(BaseTrainer):
         if self.is_train:
             batch["loss"].backward()  # sum of all losses is always called loss
             self._clip_grad_norm()
-            if batch_id % self.grad_acum == self.grad_acum - 1:
-                self.optimizer.step()
+            # if batch_id % self.grad_acum == self.grad_acum - 1:
+            self.optimizer.step()
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
 
@@ -94,7 +94,9 @@ class Trainer(BaseTrainer):
 
     def log_audio(self, audio, **batch):
         audio = audio[0].detach().cpu()
-        self.writer.addaudio("audio", audio)
+        self.writer.add_audio(
+            "audio", audio, sample_rate=self.config.trainer.sample_rate
+        )
 
     def log_predictions(
         self,

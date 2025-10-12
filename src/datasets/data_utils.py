@@ -3,6 +3,7 @@ from itertools import repeat
 from hydra.utils import instantiate
 
 from src.datasets.collate import collate_fn
+from src.text_encoder import CTCTextEncoder
 from src.utils.init_utils import set_worker_seed
 
 
@@ -88,3 +89,15 @@ def get_dataloaders(config, text_encoder, device):
         dataloaders[dataset_partition] = partition_dataloader
 
     return dataloaders, batch_transforms
+
+
+def get_texts(config):
+    text_encoder = CTCTextEncoder()
+    texts = []
+    for dataset_partition in config.datasets.keys():
+        # dataset partition init
+        dataset = instantiate(
+            config.datasets[dataset_partition], text_encoder=text_encoder
+        )  # instance transforms are defined inside
+        texts += [dataset.get_text(ind) for ind in range(len(dataset))]
+    return texts

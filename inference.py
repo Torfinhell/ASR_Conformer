@@ -4,7 +4,7 @@ import hydra
 import torch
 from hydra.utils import instantiate
 
-from src.datasets.data_utils import get_dataloaders
+from src.datasets.data_utils import get_dataloaders, get_texts
 from src.trainer import Inferencer
 from src.utils.init_utils import set_random_seed
 from src.utils.io_utils import ROOT_PATH
@@ -28,9 +28,9 @@ def main(config):
         device = "cuda" if torch.cuda.is_available() else "cpu"
     else:
         device = config.inferencer.device
-
+    texts = get_texts(config)
     # setup text_encoder
-    text_encoder = instantiate(config.text_encoder)
+    text_encoder = instantiate(config.text_encoder, texts=texts)
 
     # setup data_loader instances
     # batch_transforms should be put on device

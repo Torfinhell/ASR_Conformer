@@ -88,7 +88,7 @@ class BaseDataset(Dataset):
 
         instance_data = {
             "audio": audio,
-            "spectrogram": spectrogram,
+            "spectrogram": spectrogram.squeeze(0),
             "text": text,
             "text_encoded": text_encoded[0],
             "audio_path": audio_path,
@@ -100,6 +100,25 @@ class BaseDataset(Dataset):
         instance_data = self.preprocess_data(instance_data)
 
         return instance_data
+
+    def get_text(self, ind):
+        """
+        Get element from the index, preprocess it, and combine it
+        into a dict.
+
+        Notice that the choice of key names is defined by the template user.
+        However, they should be consistent across dataset getitem, collate_fn,
+        loss_function forward method, and model forward method.
+
+        Args:
+            ind (int): index in the self.index list.
+        Returns:
+            instance_data (dict): dict, containing instance
+                (a single dataset element).
+        """
+        data_dict = self._index[ind]
+        text = data_dict["text"]
+        return text
 
     def __len__(self):
         """
@@ -161,7 +180,7 @@ class BaseDataset(Dataset):
         the desired max_test_length or max_audio_length.
 
         Args:
-            index (list[dict]): list, containing dict for each element of
+            index (list[dictextt]): list, containing dict for each element of
                 the dataset. The dict has required metadata information,
                 such as label and object path.
             max_audio_length (int): maximum allowed audio length.

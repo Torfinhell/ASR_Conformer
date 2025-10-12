@@ -12,10 +12,13 @@ def pad_tensors(tensors: list[torch.Tensor]):
     padded_tensors = [
         F.pad(
             t,
-            [
-                (0, max_shape[dim_ind] - t.shape[dim_ind])
-                for dim_ind in range(len(max_shape))
-            ],
+            sum(
+                [
+                    (0, max_shape[dim_ind] - t.shape[dim_ind])
+                    for dim_ind in reversed(range(len(max_shape)))
+                ],
+                (),
+            ),
             "constant",
             0,
         )
@@ -31,17 +34,18 @@ def collate_fn(dataset_items: list[dict]):
     }
     result_batch = {
         "spectrogram": pad_tensors(batch_by_column["spectrogram"]),
-        "text": pad_tensors(batch_by_column["text_encoded"]),
+        "text_encoded": pad_tensors(batch_by_column["text_encoded"]),
         "audio_path": batch_by_column["audio_path"],
         "audio": batch_by_column["audio"],
+        "text": batch_by_column["text"],
     }
     result_batch.update(
         {
             "text_encoded_lengths": torch.tensor(
-                [text.shape[0] for text in result_batch["text"]]
+                [text.shape[0] for text in batch_by_column["text_encoded"]]
             ),
             "spectrogram_lengths": torch.tensor(
-                [spec.shape[2] for spec in result_batch["spectrogram"]]
+                [spec.shape[1] for spec in batch_by_column["spectrogram"]]
             ),
         }
     )
