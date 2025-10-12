@@ -1,66 +1,76 @@
+from collections import defaultdict
 from typing import List
 
+import numpy as np
 import torch
 from torch import Tensor
-import numpy as np
-from collections import defaultdict
+
 from src.metrics.base_metric import BaseMetric
 from src.metrics.utils import calc_cer
-class ArgmaxCERMetric():
-    def __init__(self, text_encoder, name):
-        self.name=name
-        self.text_encoder=text_encoder
-    def __call__(self, log_probs, log_probs_length, text, **batch):
-        cers=[]
-        predictions=torch.argmax(log_probs.cpu(), dim=-1).numpy()
-        lengths=log_probs_length.cpu().detach().numpy()
-        for ind_vec, length, target_text in zip(predictions, lengths, text):
-            target_text=self.text_encoder.normalize_text(target_text)
-            pred_text=self.text_encoder.ctc_decode(ind_vec[:length])
-            cers.append(calc_cer(target_text, pred_text))   
-        return sum(cers)/len(cers)
 
-class BeamSearchCERMetric():
-    def __init__(self, text_encoder, beam_size,name, beam_depth=1, take_first_chars=28):
-        self.name=name
-        self.text_encoder=text_encoder
-        self.beam_size=beam_size
-        self.beam_depth=beam_depth
-        self.take_first_chars=take_first_chars
+
+class ArgmaxCERMetric:
+    def __init__(self, text_encoder, name):
+        self.name = name
+        self.text_encoder = text_encoder
+
+    def __call__(self, log_probs, log_probs_length, text, **batch):
+        cers = []
+        predictions = torch.argmax(log_probs.cpu(), dim=-1).numpy()
+        lengths = log_probs_length.cpu().detach().numpy()
+        for ind_vec, length, target_text in zip(predictions, lengths, text):
+            target_text = self.text_encoder.normalize_text(target_text)
+            pred_text = self.text_encoder.ctc_decode(ind_vec[:length])
+            cers.append(calc_cer(target_text, pred_text))
+        return sum(cers) / len(cers)
+
+
+class BeamSearchCERMetric:
+    def __init__(
+        self, text_encoder, beam_size, name, beam_depth=1, take_first_chars=28
+    ):
+        self.name = name
+        self.text_encoder = text_encoder
+        self.beam_size = beam_size
+        self.beam_depth = beam_depth
+        self.take_first_chars = take_first_chars
+
     def __call__(self, probs, log_probs_length, text, **batch):
-        cers=[]
-        predictions=probs.cpu().numpy()
-        lengths=log_probs_length.cpu().detach().numpy()
+        cers = []
+        predictions = probs.cpu().numpy()
+        lengths = log_probs_length.cpu().detach().numpy()
         for prob_vec, length, target_text in zip(predictions, lengths, text):
-            target_text=self.text_encoder.normalize_text(target_text)
-            dp=self.ctc_beam_search(prob_vec, length)
+            target_text = self.text_encoder.normalize_text(target_text)
+            dp = self.ctc_beam_search(prob_vec, length)
             if len(self.truncate_beams(dp, 1).keys()):
                 beam_pred = list(self.truncate_beams(dp, 1).keys())[0][0]
             else:
-                beam_pred=""
-            cers.append(calc_cer(target_text, beam_pred))   
-        return sum(cers)/len(cers)
-    def ctc_beam_search(self,probs, length):
-        dp={
-            ("",self.text_encoder.EMPTY_TOK):1.0,
+                beam_pred = ""
+            cers.append(calc_cer(target_text, beam_pred))
+        return sum(cers) / len(cers)
+
+    def ctc_beam_search(self, probs, length):
+        dp = {
+            ("", self.text_encoder.EMPTY_TOK): 1.0,
         }
-        for idx in range(0,len(probs),self.beam_depth):
-            for step in range(min(self.beam_depth, len(probs)-idx)):
-                dp=self.expand_beam_and_merge_beams(dp,probs[idx+step], length)
-            dp=self.truncate_beams(dp)
+        for idx in range(0, len(probs), self.beam_depth):
+            for step in range(min(self.beam_depth, len(probs) - idx)):
+                dp = self.expand_beam_and_merge_beams(dp, probs[idx + step], length)
+            dp = self.truncate_beams(dp)
         return dp
-    def expand_beam_and_merge_beams(self,dp, cur_step_prob, maxlen):
-        new_dp=defaultdict(float)
-        best_chars_sorted=np.argsort(cur_step_prob)[::-1]
+
+    def expand_beam_and_merge_beams(self, dp, cur_step_prob, maxlen):
+        new_dp = defaultdict(float)
+        best_chars_sorted = np.argsort(cur_step_prob)[::-1]
         for (pref, prev_char), prev_proba in dp.items():
-            for idx in best_chars_sorted[:self.take_first_chars]:
-                char=self.text_encoder.ind2char[idx]
-                cur_proba=prev_proba*cur_step_prob[idx]
-                cur_pref=pref
-                if char!=self.text_encoder.EMPTY_TOK and prev_char!=char:
-                    cur_pref+=char
-                if len(cur_pref)<=maxlen:
-                    new_dp[(cur_pref, char)]+=cur_proba
+            for idx in best_chars_sorted[: self.take_first_chars]:
+                char = self.text_encoder.ind2char[idx]
+                cur_proba = prev_proba * cur_step_prob[idx]
+                cur_pref = pref
+                if char != self.text_encoder.EMPTY_TOK and prev_char != char:
+                    cur_pref += char
+                if len(cur_pref) <= maxlen:
+                    new_dp[(cur_pref, char)] += cur_proba
         return new_dp
 
     def truncate_beams(self, dp, beam_size=None):
