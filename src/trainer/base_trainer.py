@@ -273,8 +273,7 @@ class BaseTrainer:
                 total=len(dataloader),
             ):
                 batch = self.process_batch(
-                    batch,
-                    metrics=self.evaluation_metrics,
+                    batch, metrics=self.evaluation_metrics, batch_id=batch_idx
                 )
             self.writer.set_step(epoch * self.epoch_len, part)
             self._log_scalars(self.evaluation_metrics)

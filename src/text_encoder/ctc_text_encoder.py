@@ -41,12 +41,19 @@ class CTCTextEncoder:
     def encode(self, text) -> torch.Tensor:
         text = self.normalize_text(text)
         try:
-            return torch.Tensor([self.char2ind[char] for char in text]).unsqueeze(0)
+            return torch.Tensor(
+                [self.char2ind[token] for token in self.get_splits(text)]
+            ).unsqueeze(0)
         except KeyError:
-            unknown_chars = set([char for char in text if char not in self.char2ind])
-            raise Exception(
-                f"Can't encode text '{text}'. Unknown chars: '{' '.join(unknown_chars)}'"
+            unknown_chars = set(
+                [token for token in self.get_splits(text) if token not in self.char2ind]
             )
+            raise Exception(
+                f"Can't encode text '{text}'. Unknown tokens: '{' '.join(unknown_chars)}'"
+            )
+
+    def get_splits(self, text):
+        return [char for char in text]
 
     def decode(self, inds) -> str:
         """
