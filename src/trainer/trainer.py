@@ -13,7 +13,7 @@ class Trainer(BaseTrainer):
     Trainer class. Defines the logic of batch logging and processing.
     """
 
-    def process_batch(self, batch, metrics: MetricTracker):
+    def process_batch(self, batch, metrics: MetricTracker, batch_id: int):
         """
         Run batch through the model, compute metrics, compute loss,
         and do training step (during training stage).
@@ -38,7 +38,8 @@ class Trainer(BaseTrainer):
         metric_funcs = self.metrics["inference"]
         if self.is_train:
             metric_funcs = self.metrics["train"]
-            self.optimizer.zero_grad()
+            if batch_id % self.grad_acum == 0:
+                self.optimizer.zero_grad()
 
         outputs = self.model(**batch)
         batch.update(outputs)
@@ -49,7 +50,8 @@ class Trainer(BaseTrainer):
         if self.is_train:
             batch["loss"].backward()  # sum of all losses is always called loss
             self._clip_grad_norm()
-            self.optimizer.step()
+            if batch_id % self.grad_acum == self.grad_acum - 1:
+                self.optimizer.step()
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
 
@@ -83,14 +85,25 @@ class Trainer(BaseTrainer):
             # Log Stuff
             self.log_spectrogram(**batch)
             self.log_predictions(**batch)
+            self.log_audio(**batch)
 
     def log_spectrogram(self, spectrogram, **batch):
         spectrogram_for_plot = spectrogram[0].detach().cpu()
         image = plot_spectrogram(spectrogram_for_plot)
         self.writer.add_image("spectrogram", image)
 
+    def log_audio(self, audio, **batch):
+        audio = audio[0].detach().cpu()
+        self.writer.addaudio("audio", audio)
+
     def log_predictions(
-        self, text, log_probs, log_probs_length, audio_path, examples_to_log=10, **batch
+        self,
+        text,
+        log_probs,
+        log_probs_length,
+        audio_path,
+        examples_to_log=100,
+        **batch,
     ):
         # TODO add beam search
         # Note: by improving text encoder and metrics design
@@ -106,7 +119,9 @@ class Trainer(BaseTrainer):
         tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
 
         rows = {}
-        for pred, target, raw_pred, audio_path in tuples[:examples_to_log]:
+        for pred, target, raw_pred, audio_path in (
+            tuples[:examples_to_log] if examples_to_log is not None else tuples
+        ):
             target = self.text_encoder.normalize_text(target)
             wer = calc_wer(target, pred) * 100
             cer = calc_cer(target, pred) * 100

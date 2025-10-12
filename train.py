@@ -24,9 +24,9 @@ def main(config):
     """
     set_random_seed(config.trainer.seed)
 
-    project_config = OmegaConf.to_container(config)
+    # project_config = OmegaConf.to_container(config)
     logger = setup_saving_and_logging(config)
-    writer = instantiate(config.writer, logger, project_config)
+    # writer = instantiate(config.writer, logger, project_config)
 
     if config.trainer.device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -58,8 +58,10 @@ def main(config):
     # build optimizer, learning rate scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = instantiate(config.optimizer, params=trainable_params)
-    epoch_len=len(dataloaders["train"])
-    lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer, steps_per_epoch=epoch_len)
+    epoch_len = len(dataloaders["train"])
+    lr_scheduler = instantiate(
+        config.lr_scheduler, optimizer=optimizer, steps_per_epoch=epoch_len
+    )
 
     # epoch_len = number of iterations for iteration-based training
     # epoch_len = None #for epoch-based training
@@ -77,7 +79,7 @@ def main(config):
         dataloaders=dataloaders,
         epoch_len=epoch_len,
         logger=logger,
-        writer=writer,
+        # writer=writer,
         batch_transforms=batch_transforms,
         skip_oom=config.trainer.get("skip_oom", True),
     )

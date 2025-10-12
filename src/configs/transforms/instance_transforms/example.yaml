@@ -4,7 +4,7 @@ train:
     sample_rate: 16000
     hop_length: 128
     n_fft: 1024
-    n_mels: 132
+    n_mels: ${model.model_dim}
   audio: # name of the tensor on which we apply transform
     _target_: torchvision.transforms.v2.Compose
     transforms:
@@ -15,4 +15,4 @@ inference:
     sample_rate: 16000
     hop_length: 128
     n_fft: 1024
-    n_mels: 132
+    n_mels: ${model.model_dim}
