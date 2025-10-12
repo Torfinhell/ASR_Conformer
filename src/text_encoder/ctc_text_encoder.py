@@ -3,6 +3,8 @@ from string import ascii_lowercase
 
 import torch
 
+# from tokenizers import trainers.BpeTrainer
+
 # TODO add CTC decode
 # TODO add BPE, LM, Beam Search support
 # Note: think about metrics and encoder
@@ -59,12 +61,12 @@ class CTCTextEncoder:
         return "".join([self.ind2char[int(ind)] for ind in inds]).strip()
 
     def ctc_decode(self, inds) -> str:
-        prev=None
-        res=""
+        prev = None
+        res = ""
         for ind in inds:
-            if(prev!=ind and ind):  
-                res+=self.ind2char[ind]
-            prev=ind
+            if prev != ind and ind:
+                res += self.ind2char[ind]
+            prev = ind
         return res
 
     @staticmethod

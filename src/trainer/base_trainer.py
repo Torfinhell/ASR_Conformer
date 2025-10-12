@@ -93,6 +93,7 @@ class BaseTrainer:
         self._last_epoch = 0  # required for saving on interruption
         self.start_epoch = 1
         self.epochs = self.cfg_trainer.n_epochs
+        self.grad_acum = self.cfg_trainer.grad_acum
 
         # configuration to monitor model performance and save best
 
@@ -130,7 +131,7 @@ class BaseTrainer:
             *self.config.writer.loss_names,
             *[m.name for m in self.metrics["inference"]],
             writer=self.writer,
-        )
+        )  # change
 
         # define checkpoint dir and init everything if required
 
@@ -175,7 +176,7 @@ class BaseTrainer:
 
             # print logged information to the screen
             for key, value in logs.items():
-                self.logger.info(f"    {key:15s}: {value}")
+                self.logger.info(f"{key: 15s}: {value}")
 
             # evaluate model performance according to configured metric,
             # save best checkpoint as model_best
@@ -210,8 +211,7 @@ class BaseTrainer:
         ):
             try:
                 batch = self.process_batch(
-                    batch,
-                    metrics=self.train_metrics,
+                    batch, metrics=self.train_metrics, batch_id=batch_idx
                 )
             except torch.cuda.OutOfMemoryError as e:
                 if self.skip_oom:
