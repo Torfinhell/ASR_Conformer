@@ -38,8 +38,8 @@ class Trainer(BaseTrainer):
         metric_funcs = self.metrics["inference"]
         if self.is_train:
             metric_funcs = self.metrics["train"]
-            # if batch_id % self.grad_acum == 0:
-            self.optimizer.zero_grad()
+            if batch_id % self.grad_acum == 0:
+                self.optimizer.zero_grad()
 
         outputs = self.model(**batch)
         batch.update(outputs)
@@ -48,12 +48,13 @@ class Trainer(BaseTrainer):
         batch.update(all_losses)
 
         if self.is_train:
-            batch["loss"].backward()  # sum of all losses is always called loss
-            self._clip_grad_norm()
-            # if batch_id % self.grad_acum == self.grad_acum - 1:
-            self.optimizer.step()
-            if self.lr_scheduler is not None:
-                self.lr_scheduler.step()
+            scaled_loss=batch["loss"]/self.grad_acum
+            scaled_loss.backward()  # sum of all losses is always called loss
+            if (batch_id+1) % self.grad_acum == 0:
+                self._clip_grad_norm()
+                self.optimizer.step()
+                if self.lr_scheduler is not None:
+                    self.lr_scheduler.step()
 
         # update metrics for each loss (in case of multiple losses)
         for loss_name in self.config.writer.loss_names:

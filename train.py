@@ -5,7 +5,7 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 
-from src.datasets.data_utils import get_dataloaders, get_texts
+from src.datasets.data_utils import get_dataloaders, get_texts_for_bpe
 from src.trainer import Trainer
 from src.utils.init_utils import set_random_seed, setup_saving_and_logging
 
@@ -32,7 +32,7 @@ def main(config):
         device = "cuda" if torch.cuda.is_available() else "cpu"
     else:
         device = config.trainer.device
-    texts = get_texts(config)
+    texts = get_texts_for_bpe(config)
     # setup text_encoder
     text_encoder = instantiate(config.text_encoder, texts=texts)
 

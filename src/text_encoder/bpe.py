@@ -3,7 +3,7 @@ from string import ascii_lowercase
 
 import torch
 
-from .ctc_text_encoder import CTCTextEncoder
+from .ctc_text_encoder import BaseTextEncoder
 
 
 class BpeTrainer:
@@ -25,7 +25,9 @@ class BpeTrainer:
         self.splits = {word: [c for c in word] for word in self.word_freqs}
         while len(self.vocab) < self.vocab_size:
             pair_freqs = self.compute_pair_freqs()
-            best_pair = max(pair_freqs.items(), key=lambda x: x[1])[0]
+            best_pair = max(pair_freqs.items(), key=lambda x: x[1])[0] #x[0][0]!=x[0][1]
+            if(not best_pair): 
+                break
             self.update_split(*best_pair)
             self.merges[best_pair] = best_pair[0] + best_pair[1]
             self.vocab.add(best_pair[0] + best_pair[1])
@@ -64,10 +66,12 @@ class BpeTrainer:
                     else:
                         i += 1
                 splits[idx] = split
+        for i in range(len(splits)-1):
+            splits[i]+=[" "]
         return sum(splits, [])
 
 
-class BpeEncoder(CTCTextEncoder):
+class BpeEncoder(BaseTextEncoder):
     def __init__(self, vocab_size=100, texts=None, **kwargs):
         self.bpe_encoder = BpeTrainer(
             vocab_size, min_alphabet=list(ascii_lowercase + " ")
