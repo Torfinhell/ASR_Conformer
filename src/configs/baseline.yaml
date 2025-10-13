@@ -2,11 +2,14 @@ defaults:
   - model: conformer
   - writer: wandb
   - metrics: basic
-  - datasets: onebatchtest
-  - dataloader: onebatchtest
+  - datasets: basic
+  - dataloader: basic
   - transforms: example_only_instance
-  - text_encoder: CTCEncoder
+  - text_encoder: BpeEncoder
   - _self_
+partition_for_bpe:
+  _target_: src.datasets.LibrispeechDataset
+  part: "train-clean-100"
 optimizer:
   _target_: torch.optim.AdamW
   lr: 3e-4

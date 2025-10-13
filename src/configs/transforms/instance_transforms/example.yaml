@@ -1,7 +1,7 @@
 train:
   get_spectrogram: # special key for getting spectrogram
     _target_: torchaudio.transforms.MelSpectrogram
-    sample_rate: 16000
+    sample_rate: ${trainer.sample_rate}
     hop_length: 128
     n_fft: 1024
     n_mels: ${model.model_dim}
@@ -12,7 +12,7 @@ train:
 inference:
   get_spectrogram:
     _target_: torchaudio.transforms.MelSpectrogram
-    sample_rate: 16000
+    sample_rate: ${trainer.sample_rate}
     hop_length: 128
     n_fft: 1024
     n_mels: ${model.model_dim}

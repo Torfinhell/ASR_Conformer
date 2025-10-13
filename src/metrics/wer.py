@@ -64,7 +64,7 @@ class BeamSearchWERMetric:
         best_chars_sorted = np.argsort(cur_step_prob)[::-1]
         for (pref, prev_char), prev_proba in dp.items():
             for idx in best_chars_sorted[: self.take_first_chars]:
-                char = self.text_encoder.ind2char[idx]
+                char = self.text_encoder.ind2token[idx]
                 cur_proba = prev_proba * cur_step_prob[idx]
                 cur_pref = pref
                 if char != self.text_encoder.EMPTY_TOK and prev_char != char:

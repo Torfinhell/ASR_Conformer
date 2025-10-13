@@ -53,7 +53,10 @@ def plot_spectrogram(spectrogram, name=None):
         image (Image): image of the spectrogram
     """
     plt.figure(figsize=(20, 5))
-    plt.pcolormesh(spectrogram)
+    tGrid = np.arange(0,spectrogram.shape[0]*hopSize, hopSize)/srTarg
+    fGrid = np.arange(0,nFFT/2+0.00001)/(nFFT)*srTarg
+    tt,ff = np.meshgrid(tGrid,fGrid)
+    plt.pcolormesh(tt, tf, 20*torch.log10(spectrogram+1e-8), cmap="gist_heat")
     plt.title(name)
     buf = io.BytesIO()
     plt.savefig(buf, format="png")
