@@ -10,6 +10,6 @@ class CTCTextEncoder(BaseTextEncoder):
 
         if alphabet is None:
             alphabet = list(ascii_lowercase + " ")
-        super().__init__(alphabet)
+        super().__init__(alphabet, **kwargs)
     def get_splits(self, text):
         return [token for token in text]

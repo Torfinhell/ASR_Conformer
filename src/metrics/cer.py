@@ -27,13 +27,10 @@ class ArgmaxCERMetric:
 
 class BeamSearchCERMetric:
     def __init__(
-        self, text_encoder, beam_size, name, beam_depth=1, take_first_chars=28
+        self, text_encoder, name
     ):
         self.name = name
         self.text_encoder = text_encoder
-        self.beam_size = beam_size
-        self.beam_depth = beam_depth
-        self.take_first_chars = take_first_chars
 
     def __call__(self, probs, log_probs_length, text, **batch):
         cers = []
@@ -41,38 +38,10 @@ class BeamSearchCERMetric:
         lengths = log_probs_length.cpu().detach().numpy()
         for prob_vec, length, target_text in zip(predictions, lengths, text):
             target_text = self.text_encoder.normalize_text(target_text)
-            dp = self.ctc_beam_search(prob_vec, length)
-            if len(self.truncate_beams(dp, 1).keys()):
-                beam_pred = list(self.truncate_beams(dp, 1).keys())[0][0]
+            dp = self.text_encoder.ctc_beam_search(prob_vec, length)
+            if len(self.text_encoder.truncate_beams(dp, 1).keys()):
+                beam_pred = list(self.text_encoder.truncate_beams(dp, 1).keys())[0][0]
             else:
                 beam_pred = ""
             cers.append(calc_cer(target_text, beam_pred))
         return sum(cers) / len(cers)
-
-    def ctc_beam_search(self, probs, length):
-        dp = {
-            ("", self.text_encoder.EMPTY_TOK): 1.0,
-        }
-        for idx in range(0, len(probs), self.beam_depth):
-            for step in range(min(self.beam_depth, len(probs) - idx)):
-                dp = self.expand_beam_and_merge_beams(dp, probs[idx + step], length)
-            dp = self.truncate_beams(dp)
-        return dp
-
-    def expand_beam_and_merge_beams(self, dp, cur_step_prob, maxlen):
-        new_dp = defaultdict(float)
-        best_chars_sorted = np.argsort(cur_step_prob)[::-1]
-        for (pref, prev_char), prev_proba in dp.items():
-            for idx in best_chars_sorted[: self.take_first_chars]:
-                char = self.text_encoder.ind2token[idx]
-                cur_proba = prev_proba * cur_step_prob[idx]
-                cur_pref = pref
-                if char != self.text_encoder.EMPTY_TOK and prev_char != char:
-                    cur_pref += char
-                if len(cur_pref) <= maxlen:
-                    new_dp[(cur_pref, char)] += cur_proba
-        return new_dp
-
-    def truncate_beams(self, dp, beam_size=None):
-        beam_size = beam_size if beam_size else self.beam_size
-        return dict(sorted(dp.items(), key=lambda x: -x[1])[:beam_size])

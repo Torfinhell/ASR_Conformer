@@ -2,10 +2,10 @@ defaults:
   - model: conformer
   - writer: wandb
   - metrics: basic
-  - datasets: basic
-  - dataloader: basic
+  - datasets: onebatchtest
+  - dataloader: onebatchtest
   - transforms: example_only_instance
-  - text_encoder: BpeEncoder
+  - text_encoder: CTCEncoder
   - _self_
 partition_for_bpe:
   _target_: src.datasets.LibrispeechDataset

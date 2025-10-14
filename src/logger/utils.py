@@ -65,7 +65,7 @@ def plot_spectrogram(spectrogram, config, name=None):
     tGrid=np.arange(0,spectrogram.shape[1])*hop_length/sample_rate
     fGrid=np.arange(n_mels)
     tt, ff=np.meshgrid(tGrid, fGrid)
-    im = ax.pcolormesh(tt, ff, 20* np.log10(spectrogram), cmap="gist_heat")
+    im = ax.pcolormesh(tt, ff, 20* np.log10(spectrogram+1e-8), cmap="gist_heat")
     ax.set_xlabel('Time, sec', size=20)
     ax.set_ylabel('Frequency, MelID', size=20)
     f.colorbar(im)

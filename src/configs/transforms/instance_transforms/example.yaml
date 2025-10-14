@@ -5,10 +5,13 @@ train:
     hop_length: 128
     n_fft: 1024
     n_mels: ${model.model_dim}
-  # audio: # name of the tensor on which we apply transform
-  #   _target_: torchvision.transforms.v2.Compose
-  #   transforms:
-  #     - _target_: src.transforms.wav_augs.Gain
+  audio: # name of the tensor on which we apply transform
+    _target_: torchvision.transforms.v2.Compose
+    transforms:
+      - _target_: src.transforms.wav_augs.Gain
+      - _target_: src.transforms.wav_augs.AddNoise
+        sounds_path: "noise_mixing"
+        sample_rate: ${trainer.sample_rate}
 inference:
   get_spectrogram:
     _target_: torchaudio.transforms.MelSpectrogram
