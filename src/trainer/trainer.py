@@ -88,9 +88,9 @@ class Trainer(BaseTrainer):
             self.log_predictions(**batch)
             self.log_audio(**batch)
 
-    def log_spectrogram(self, spectrogram, **batch):
-        spectrogram_for_plot = spectrogram[0].detach().cpu()
-        image = plot_spectrogram(spectrogram_for_plot)
+    def log_spectrogram(self, spectrogram, spectrogram_lengths, **batch):
+        spectrogram_for_plot = spectrogram[0, :, :spectrogram_lengths[0]].detach().cpu().numpy()
+        image = plot_spectrogram(spectrogram_for_plot, self.config)
         self.writer.add_image("spectrogram", image)
 
     def log_audio(self, audio, **batch):
