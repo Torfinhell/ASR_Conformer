@@ -40,7 +40,6 @@ class Trainer(BaseTrainer):
             metric_funcs = self.metrics["train"]
             if batch_id % self.grad_acum == 0:
                 self.optimizer.zero_grad()
-
         outputs = self.model(**batch)
         batch.update(outputs)
 
@@ -102,40 +101,72 @@ class Trainer(BaseTrainer):
     def log_predictions(
         self,
         text,
-        log_probs,
         log_probs_length,
         audio_path,
         examples_to_log=100,
+        log_probs=None,#for argmax
+        probs=None,#for beam_search
         **batch,
     ):
-        # TODO add beam search
-        # Note: by improving text encoder and metrics design
-        # this logging can also be improved significantly
+        if(not self.text_encoder.is_beam_search):
+            argmax_inds = log_probs.cpu().argmax(-1).numpy()
+            argmax_inds = [
+                inds[: int(ind_len)]
+                for inds, ind_len in zip(argmax_inds, log_probs_length.numpy())
+            ]
+            argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
+            argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
+            tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
 
-        argmax_inds = log_probs.cpu().argmax(-1).numpy()
-        argmax_inds = [
-            inds[: int(ind_len)]
-            for inds, ind_len in zip(argmax_inds, log_probs_length.numpy())
-        ]
-        argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
-        argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
-        tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
+            rows = {}
+            for pred, target, raw_pred, audio_path in (
+                tuples[:examples_to_log] if examples_to_log is not None else tuples
+            ):
+                target = self.text_encoder.normalize_text(target)
+                wer = calc_wer(target, pred) * 100
+                cer = calc_cer(target, pred) * 100
 
-        rows = {}
-        for pred, target, raw_pred, audio_path in (
-            tuples[:examples_to_log] if examples_to_log is not None else tuples
-        ):
-            target = self.text_encoder.normalize_text(target)
-            wer = calc_wer(target, pred) * 100
-            cer = calc_cer(target, pred) * 100
+                rows[Path(audio_path).name] = {
+                    "target": target,
+                    "raw prediction": raw_pred,
+                    "predictions": pred,
+                    "wer": wer,
+                    "cer": cer,
+                }
+            self.writer.add_table(
+                "predictions", pd.DataFrame.from_dict(rows, orient="index")
+            )
+        else:
+            argmax_inds = log_probs.cpu().argmax(-1).numpy()
+            argmax_inds = [
+                inds[: int(ind_len)]
+                for inds, ind_len in zip(argmax_inds, log_probs_length.numpy())
+            ]
+            argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
+            predictions = probs.cpu().numpy()
+            lengths = log_probs_length.cpu().detach().numpy()
+            tuples=list(zip(predictions, lengths, text, audio_path, argmax_texts_raw))
+            rows = {}
+            for prob_vec, length, target, audio_path, raw_pred in (
+                tuples[:examples_to_log] if examples_to_log is not None else tuples
+            ):
+                target = self.text_encoder.normalize_text(target)
+                dp = self.text_encoder.ctc_beam_search(prob_vec, length)
+                if len(self.text_encoder.truncate_beams(dp, 1).keys()):
+                    beam_pred = list(self.text_encoder.truncate_beams(dp, 1).keys())[0][0]
+                else:
+                    beam_pred = ""
+                target = self.text_encoder.normalize_text(target)
+                wer = calc_wer(target, beam_pred) * 100
+                cer = calc_cer(target, beam_pred) * 100
 
-            rows[Path(audio_path).name] = {
-                "target": target,
-                "raw prediction": raw_pred,
-                "predictions": pred,
-                "wer": wer,
-                "cer": cer,
-            }
-        self.writer.add_table(
-            "predictions", pd.DataFrame.from_dict(rows, orient="index")
-        )
+                rows[Path(audio_path).name] = {
+                    "target": target,
+                    "raw prediction": raw_pred,
+                    "predictions": beam_pred,
+                    "wer": wer,
+                    "cer": cer,
+                }
+            self.writer.add_table(
+                "predictions", pd.DataFrame.from_dict(rows, orient="index")
+            )
