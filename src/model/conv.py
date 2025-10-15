@@ -5,6 +5,15 @@ from .activation_and_ffn import GLUActivation, SwishActivation
 
 
 class Conv(nn.Module):
+    """Conformer depthwise separable convolution block.
+
+    Args:
+        model_dim: input dimension
+        expansion_factor: expansion factor for the 1x1 conv
+        p_dropout: dropout probability
+        kernel_size: depthwise conv kernel size
+    """
+
     def __init__(self, model_dim, expansion_factor, p_dropout, kernel_size):
         super().__init__()
         self.layer_norm = nn.LayerNorm(model_dim)
@@ -32,6 +41,16 @@ class Conv(nn.Module):
 
 
 class Conv2dSubsampling(nn.Module):
+    """2D convolutional subsampling used before the conformer blocks.
+
+    Input
+    - inputs: tensor with shape (B, T, F)
+    - inputs_lengths: tensor with shape (B,)
+
+    Returns
+    - outputs, output_lengths where outputs are subsampled features and output_lengths is there lengths
+    """
+
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.subsampling = nn.Sequential(

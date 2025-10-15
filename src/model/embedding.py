@@ -5,15 +5,23 @@ from torch import nn
 
 
 class RelativePosEmb(nn.Module):
-    """
-    input: (B, L, D)
+    """Relative positional embedding.
+
+    Args:
+        model_dim: embedding dimensionality (D)
+
+    Input Shape
+    - x: tensor with shape (B, L, D)
+
+    Returns
+    - tensor with shape (B, L, D) containing positional embeddings
     """
 
     def __init__(self, model_dim):
         super().__init__()
         self.model_dim = model_dim
 
-    def forward(self, x):  # (B, L, D)
+    def forward(self, x):
         relative_ind = (
             torch.arange(0, x.shape[1], dtype=torch.float32).unsqueeze(1).to(x.device)
         )

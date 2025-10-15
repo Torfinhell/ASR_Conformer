@@ -1,28 +1,43 @@
 import re
-from string import ascii_lowercase
-
-import torch
-# TODO add, LM support
-import numpy as np
 from collections import defaultdict
+from string import ascii_lowercase
+from typing import Iterable, List, Optional, Tuple
+
+import numpy as np
+import torch
+from torch import Tensor
+
 from .llm_scorer import LLMToScore
+
+
 class BaseTextEncoder:
+    """Base class for text encoders.
+
+    Args:
+        alphabet: list of symbols
+        beam_size, beam_depth, take_first_chars: parametrs for beam-search
+        use_LLM: LLM rescoring
+    """
+
     EMPTY_TOK = ""
 
-    def __init__(self, alphabet,beam_size=None,beam_depth=None,take_first_chars=None, use_LLM=False,**kwargs):
-        """
-        Args:
-            alphabet (list): alphabet for language. If None, it will be
-                set to ascii
-        """
+    def __init__(
+        self,
+        alphabet: Optional[Iterable[str]] = None,
+        beam_size: Optional[int] = None,
+        beam_depth: Optional[int] = None,
+        take_first_chars: Optional[int] = None,
+        use_LLM: bool = False,
+        **kwargs,
+    ) -> None:
         self.beam_size = beam_size
         self.beam_depth = beam_depth
         self.take_first_chars = take_first_chars
         try:
             self.beam_values_are_intialised()
-            self.is_beam_search=True
-        except(ValueError):
-            self.is_beam_search=False
+            self.is_beam_search = True
+        except ValueError:
+            self.is_beam_search = False
         if alphabet is None:
             alphabet = list(ascii_lowercase + " ")
 
@@ -31,18 +46,18 @@ class BaseTextEncoder:
 
         self.ind2token = dict(enumerate(self.vocab))
         self.token2ind = {v: k for k, v in self.ind2token.items()}
-        self.useLLM=use_LLM
+        self.useLLM = use_LLM
         if use_LLM:
-            self.llm=LLMToScore()
+            self.llm = LLMToScore()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.vocab)
 
-    def __getitem__(self, item: int):
+    def __getitem__(self, item: int) -> str:
         assert type(item) is int
         return self.ind2token[item]
 
-    def encode(self, text) -> torch.Tensor:
+    def encode(self, text: str) -> Tensor:
         text = self.normalize_text(text)
         try:
             return torch.Tensor(
@@ -50,28 +65,23 @@ class BaseTextEncoder:
             ).unsqueeze(0)
         except KeyError:
             unknown_tokens = set(
-                [token for token in self.get_splits(text) if token not in self.token2ind]
+                [
+                    token
+                    for token in self.get_splits(text)
+                    if token not in self.token2ind
+                ]
             )
             raise Exception(
                 f"Can't encode text '{text}'. Unknown tokens: '{' '.join(unknown_tokens)}'"
             )
 
-    def get_splits(self, text):
+    def get_splits(self, text: str) -> Iterable[str]:
         raise NotImplementedError()
 
-    def decode(self, inds) -> str:
-        """
-        Raw decoding without CTC.
-        Used to validate the CTC decoding implementation.
-
-        Args:
-            inds (list): list of tokens.
-        Returns:
-            raw_text (str): raw text with empty tokens and repetitions.
-        """
+    def decode(self, inds: Iterable[int]) -> str:
         return "".join([self.ind2token[int(ind)] for ind in inds]).strip()
 
-    def ctc_decode(self, inds) -> str:
+    def ctc_decode(self, inds: Iterable[int]) -> str:
         prev = None
         res = ""
         for ind in inds:
@@ -81,11 +91,12 @@ class BaseTextEncoder:
         return res
 
     @staticmethod
-    def normalize_text(text: str):
+    def normalize_text(text: str) -> str:
         text = text.lower()
         text = re.sub(r"[^a-z ]", "", text)
         return text
-    def ctc_beam_search(self, probs, length):
+
+    def ctc_beam_search(self, probs: np.ndarray, length: int):
         self.beam_values_are_intialised()
         dp = {
             ("", self.EMPTY_TOK): 1.0,
@@ -95,7 +106,10 @@ class BaseTextEncoder:
                 dp = self.expand_beam_and_merge_beams(dp, probs[idx + step], length)
             dp = self.truncate_beams(dp)
         return dp
-    def expand_beam_and_merge_beams(self, dp, cur_step_prob, maxlen):
+
+    def expand_beam_and_merge_beams(
+        self, dp: dict, cur_step_prob: np.ndarray, maxlen: int
+    ) -> dict:
         self.beam_values_are_intialised()
         new_dp = defaultdict(float)
         best_chars_sorted = np.argsort(cur_step_prob)[::-1]
@@ -109,12 +123,22 @@ class BaseTextEncoder:
                 if len(cur_pref) <= maxlen:
                     new_dp[(cur_pref, char)] += cur_proba
         return new_dp
-    def truncate_beams(self, dp, beam_size=None):
+
+    def truncate_beams(self, dp: dict, beam_size: Optional[int] = None) -> dict:
         self.beam_values_are_intialised()
         beam_size = beam_size if beam_size else self.beam_size
-        if(self.useLLM):
-            return dict(sorted(dp.items(), key=lambda x: -self.llm.score(x[0]))[:beam_size])
+        if self.useLLM:
+            return dict(
+                sorted(dp.items(), key=lambda x: -self.llm.score(x[0]))[:beam_size]
+            )
         return dict(sorted(dp.items(), key=lambda x: -x[1])[:beam_size])
+
     def beam_values_are_intialised(self):
-        if(self.beam_size is None or self.beam_depth is None or self.take_first_chars is None):
-            raise ValueError("One of the beam_size, beam_depth or take_first_chars is not initialised in the config")
+        if (
+            self.beam_size is None
+            or self.beam_depth is None
+            or self.take_first_chars is None
+        ):
+            raise ValueError(
+                "One of the beam_size, beam_depth or take_first_chars is not initialised in the config"
+            )

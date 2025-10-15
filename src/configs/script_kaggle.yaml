@@ -18,10 +18,10 @@ optimizer:
   eps: 1e-9
 lr_scheduler:
   _target_: torch.optim.lr_scheduler.LambdaLR
-  lr_lambda: 
-    _target_: src.scheduler.lr_by_step 
+  lr_lambda:
+    _target_: src.scheduler.lr_by_step
     warmup_steps: 10000
-    model_dim: ${model.model_dim} 
+    model_dim: ${model.model_dim}
 loss_function:
   _target_: src.loss.CTCLossWrapper
 trainer:

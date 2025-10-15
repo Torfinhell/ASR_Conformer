@@ -8,8 +8,13 @@ from .embedding import RelativePosEmb
 
 
 class MultiHeadSelfAttention(nn.Module):
-    """
-    input: (B, L, D)
+    """Relative multi-head self-attention used in ConformerBlock
+
+    Args:
+        model_dim: model feature dimension
+        num_heads: number of attention heads
+        dim_head: dimension of each head
+        p_dropout: dropout probability applied after output projection
     """
 
     def __init__(self, model_dim, num_heads, dim_head, p_dropout):

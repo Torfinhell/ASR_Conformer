@@ -21,4 +21,3 @@ trainer:
   seed: 1
   grad_acum: 1
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
-

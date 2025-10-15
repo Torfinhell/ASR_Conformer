@@ -47,9 +47,9 @@ class Trainer(BaseTrainer):
         batch.update(all_losses)
 
         if self.is_train:
-            scaled_loss=batch["loss"]/self.grad_acum
+            scaled_loss = batch["loss"] / self.grad_acum
             scaled_loss.backward()  # sum of all losses is always called loss
-            if (batch_id+1) % self.grad_acum == 0:
+            if (batch_id + 1) % self.grad_acum == 0:
                 self._clip_grad_norm()
                 self.optimizer.step()
                 if self.lr_scheduler is not None:
@@ -89,15 +89,15 @@ class Trainer(BaseTrainer):
             self.log_audio(**batch)
 
     def log_spectrogram(self, spectrogram, spectrogram_lengths, **batch):
-        spectrogram_for_plot = spectrogram[0, :, :spectrogram_lengths[0]].detach().cpu().numpy()
+        spectrogram_for_plot = (
+            spectrogram[0, :, : spectrogram_lengths[0]].detach().cpu().numpy()
+        )
         image = plot_spectrogram(spectrogram_for_plot, self.config)
         self.writer.add_image("spectrogram", image)
 
     def log_audio(self, audio, **batch):
         audio = audio[0].detach().cpu()
-        self.writer.add_audio(
-            "audio", audio, sample_rate=self.sample_rate
-        )
+        self.writer.add_audio("audio", audio, sample_rate=self.sample_rate)
 
     def log_predictions(
         self,
@@ -105,12 +105,12 @@ class Trainer(BaseTrainer):
         log_probs_length,
         audio_path,
         examples_to_log=100,
-        log_probs=None,#for argmax
-        probs=None,#for beam_search
+        log_probs=None,  # for argmax
+        probs=None,  # for beam_search
         batch_idx=None,
         **batch,
     ):
-        if(not self.text_encoder.is_beam_search):
+        if not self.text_encoder.is_beam_search:
             argmax_inds = log_probs.cpu().argmax(-1).numpy()
             argmax_inds = [
                 inds[: int(ind_len)]
@@ -147,7 +147,7 @@ class Trainer(BaseTrainer):
             argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
             predictions = probs.cpu().numpy()
             lengths = log_probs_length.cpu().detach().numpy()
-            tuples=list(zip(predictions, lengths, text, audio_path, argmax_texts_raw))
+            tuples = list(zip(predictions, lengths, text, audio_path, argmax_texts_raw))
             rows = {}
             for prob_vec, length, target, audio_path, raw_pred in (
                 tuples[:examples_to_log] if examples_to_log is not None else tuples
@@ -155,7 +155,9 @@ class Trainer(BaseTrainer):
                 target = self.text_encoder.normalize_text(target)
                 dp = self.text_encoder.ctc_beam_search(prob_vec, length)
                 if len(self.text_encoder.truncate_beams(dp, 1).keys()):
-                    beam_pred = list(self.text_encoder.truncate_beams(dp, 1).keys())[0][0]
+                    beam_pred = list(self.text_encoder.truncate_beams(dp, 1).keys())[0][
+                        0
+                    ]
                 else:
                     beam_pred = ""
                 target = self.text_encoder.normalize_text(target)
