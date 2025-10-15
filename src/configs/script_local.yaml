@@ -1,10 +1,10 @@
 defaults:
   - model: conformer
   - writer: wandb
-  - metrics: basic
-  - datasets: onebatchtest
-  - dataloader: onebatchtest
-  - transforms: example_only_instance
+  - metrics: ArgMax_BeamSearch
+  - datasets: train_all
+  - dataloader: local
+  - transforms: both
   - text_encoder: CTCEncoder
   - _self_
 partition_for_bpe:
@@ -12,20 +12,22 @@ partition_for_bpe:
   part: "train-clean-100"
 optimizer:
   _target_: torch.optim.AdamW
-  lr: 3e-4
+  lr: 1e-4
+  betas: [0.9, 0.98]
+  weight_decay: 1e-6
+  eps: 1e-9
 lr_scheduler:
-  _target_: torch.optim.lr_scheduler.OneCycleLR
-  max_lr: 1e-2
-  pct_start: 0.1
-  # steps_per_epoch: ${trainer.epoch_len}
-  epochs: ${trainer.n_epochs}
-  anneal_strategy: cos
+  _target_: torch.optim.lr_scheduler.LambdaLR
+  lr_lambda: 
+    _target_: src.scheduler.lr_by_step 
+    warmup_steps: 10000
+    model_dim: ${model.model_dim} 
 loss_function:
   _target_: src.loss.CTCLossWrapper
 trainer:
   log_step: 50
-  n_epochs: 250
-  # epoch_len: 20
+  n_epochs: 50
+  # epoch_len: 100
   device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
   device: auto # device name or "auto"
@@ -36,4 +38,6 @@ trainer:
   save_dir: "saved"
   seed: 1
   grad_acum: 1
-  sample_rate: 16000
+  sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
+  show_augs: False
+

@@ -1,21 +1,22 @@
 train:
   get_spectrogram: # special key for getting spectrogram
     _target_: torchaudio.transforms.MelSpectrogram
-    sample_rate: ${trainer.sample_rate}
-    hop_length: 128
-    n_fft: 1024
-    n_mels: ${model.model_dim}
+    sample_rate: 16000
+    hop_length: 160
+    win_length: 400
+    n_fft: 400
+    n_mels: 80
   audio: # name of the tensor on which we apply transform
     _target_: torchvision.transforms.v2.Compose
     transforms:
       - _target_: src.transforms.wav_augs.Gain
-      - _target_: src.transforms.wav_augs.AddNoise
-        sounds_path: "noise_mixing"
-        sample_rate: ${trainer.sample_rate}
+      - _target_: src.transforms.wav_augs.ShiftPitch
+        sample_rate: 16000
 inference:
   get_spectrogram:
     _target_: torchaudio.transforms.MelSpectrogram
-    sample_rate: ${trainer.sample_rate}
-    hop_length: 128
-    n_fft: 1024
-    n_mels: ${model.model_dim}
+    sample_rate: 16000
+    hop_length: 160
+    win_length: 400
+    n_fft: 400
+    n_mels: 80

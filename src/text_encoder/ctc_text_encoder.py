@@ -1,5 +1,6 @@
 from .base_text_encoder  import BaseTextEncoder
 from string import ascii_lowercase
+
 class CTCTextEncoder(BaseTextEncoder):
     def __init__(self, alphabet=None, **kwargs):
         """

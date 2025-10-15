@@ -64,6 +64,7 @@ class WandBWriter:
         # used to separate Partition1 and Partition2 metrics
         self.mode = ""
         self.timer = datetime.now()
+        self.table=None
 
     def set_step(self, step, mode="train"):
         """
@@ -99,7 +100,7 @@ class WandBWriter:
         Returns:
             object_name (str): updated object name.
         """
-        return f"{object_name}_{self.mode}"
+        return f"{object_name}_{self.mode}" if self.mode else object_name
 
     def add_checkpoint(self, checkpoint_path, save_dir):
         """
@@ -215,8 +216,15 @@ class WandBWriter:
             table_name (str): name of the table to use in the tracker.
             table (DataFrame): table content.
         """
+        if self.table is None:
+            table["step"]=self.step
+            self.table = self.wandb.Table(dataframe=table, log_mode='MUTABLE')
+        else:
+            table["step"]=self.step
+            for _, row in table.iterrows():
+                self.table.add_data(*row, )
         self.wandb.log(
-            {self._object_name(table_name): self.wandb.Table(dataframe=table)},
+            {self._object_name(table_name): self.table},
             step=self.step,
         )
 

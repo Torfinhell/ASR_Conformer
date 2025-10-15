@@ -145,7 +145,7 @@ class BaseTrainer:
 
         if config.trainer.get("from_pretrained") is not None:
             self._from_pretrained(config.trainer.get("from_pretrained"))
-
+        self.sample_rate=config.trainer.sample_rate
     def train(self):
         """
         Wrapper around training process to save model on keyboard interrupt.

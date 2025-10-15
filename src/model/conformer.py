@@ -16,7 +16,7 @@ class ConformerBlock(nn.Module):
         dim_head=64,
         conv_dropout=0.1,
         conv_expansion_factor=2,
-        conv_kernel_size=32,
+        conv_kernel_size=31,
         attention_dropout=0.1,
     ):
         super().__init__()
@@ -47,13 +47,13 @@ class Conformer(nn.Module):
 
     def __init__(
         self,
-        model_dim,
+        input_dim,
         n_tokens,
         num_attention_heads,
         dim_head,
-        enc_dim,
+        model_dim,
         num_conformer_blocks,
-        conv_kernel_size=32,
+        conv_kernel_size=31,
         input_dropout=0.1,
         conv_dropout=0.1,
         ffn_dropout=0.1,
@@ -64,12 +64,8 @@ class Conformer(nn.Module):
     ):
         super().__init__()
         self.do_downsample = do_downsample
-        self.spec_aug = None  # Change
-        self.conv_subsampling = Conv2dSubsampling(1, enc_dim)
-        if do_downsample:
-            self.linear1 = nn.Linear((model_dim // 4 - 1) * enc_dim, model_dim)
-        else:
-            self.linear1 = nn.Linear(model_dim, model_dim)
+        self.conv_subsampling = Conv2dSubsampling(1, 1)
+        self.linear1 = nn.Linear((input_dim // 4 - 1), model_dim)
         self.dropout = nn.Dropout(input_dropout)
         self.conformer_blocks = nn.Sequential(
             *[

@@ -3,3 +3,4 @@ vocab_size: 40
 beam_size: 6
 beam_depth: 2
 take_first_chars: 5
+use_LLM: False
