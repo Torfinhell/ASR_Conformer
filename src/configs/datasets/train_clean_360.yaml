@@ -1,10 +1,8 @@
 train:
   _target_: src.datasets.LibrispeechDataset
   part: "train-clean-360"
-  data_dir: ${trainer.librispeech_data_dir}
   instance_transforms: ${transforms.instance_transforms.train}
 test:
   _target_: src.datasets.LibrispeechDataset
   part: "test-clean"
-  data_dir: ${trainer.librispeech_data_dir}
   instance_transforms: ${transforms.instance_transforms.inference}
