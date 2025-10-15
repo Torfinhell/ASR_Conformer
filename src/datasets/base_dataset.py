@@ -91,7 +91,7 @@ class BaseDataset(Dataset):
         }
         instance_data = self.preprocess_data(instance_data)
         spectrogram = self.get_spectrogram(instance_data["audio"])
-        instance_data.update(self.prepreprocess_data(
+        instance_data.update(self.preprocess_data(
                 {
                     "spectrogram": spectrogram.squeeze(0),
                 }
@@ -160,7 +160,7 @@ class BaseDataset(Dataset):
         """
         if self.instance_transforms is not None:
             for transform_name in self.instance_transforms.keys():
-                if transform_name == "get_spectrogram":
+                if transform_name == "get_spectrogram" or transform_name not in instance_data:
                     continue  # skip special key
                 instance_data[transform_name] = self.instance_transforms[
                     transform_name

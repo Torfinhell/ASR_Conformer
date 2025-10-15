@@ -81,10 +81,11 @@ class Trainer(BaseTrainer):
         # logging scheme might be different for different partitions
         if mode == "train":  # the method is called only every self.log_step steps
             self.log_spectrogram(**batch)
+            self.log_audio(**batch)
         else:
             # Log Stuff
             self.log_spectrogram(**batch)
-            self.log_predictions(**batch)
+            self.log_predictions(**batch, batch_idx=batch_idx)
             self.log_audio(**batch)
 
     def log_spectrogram(self, spectrogram, spectrogram_lengths, **batch):
@@ -95,7 +96,7 @@ class Trainer(BaseTrainer):
     def log_audio(self, audio, **batch):
         audio = audio[0].detach().cpu()
         self.writer.add_audio(
-            "audio", audio, sample_rate=self.config.trainer.sample_rate
+            "audio", audio, sample_rate=self.sample_rate
         )
 
     def log_predictions(
@@ -106,6 +107,7 @@ class Trainer(BaseTrainer):
         examples_to_log=100,
         log_probs=None,#for argmax
         probs=None,#for beam_search
+        batch_idx=None,
         **batch,
     ):
         if(not self.text_encoder.is_beam_search):
@@ -129,7 +131,7 @@ class Trainer(BaseTrainer):
                 rows[Path(audio_path).name] = {
                     "target": target,
                     "raw prediction": raw_pred,
-                    "predictions": pred,
+                    "predictions_argmax": pred,
                     "wer": wer,
                     "cer": cer,
                 }
@@ -163,7 +165,7 @@ class Trainer(BaseTrainer):
                 rows[Path(audio_path).name] = {
                     "target": target,
                     "raw prediction": raw_pred,
-                    "predictions": beam_pred,
+                    "predictions_beam_search": beam_pred,
                     "wer": wer,
                     "cer": cer,
                 }

@@ -5,10 +5,11 @@ import torch
 # TODO add, LM support
 import numpy as np
 from collections import defaultdict
+from .llm_scorer import LLMToScore
 class BaseTextEncoder:
     EMPTY_TOK = ""
 
-    def __init__(self, alphabet,beam_size=None,beam_depth=None,take_first_chars=None,**kwargs):
+    def __init__(self, alphabet,beam_size=None,beam_depth=None,take_first_chars=None, use_LLM=False,**kwargs):
         """
         Args:
             alphabet (list): alphabet for language. If None, it will be
@@ -30,6 +31,9 @@ class BaseTextEncoder:
 
         self.ind2token = dict(enumerate(self.vocab))
         self.token2ind = {v: k for k, v in self.ind2token.items()}
+        self.useLLM=use_LLM
+        if use_LLM:
+            self.llm=LLMToScore()
 
     def __len__(self):
         return len(self.vocab)
@@ -108,6 +112,8 @@ class BaseTextEncoder:
     def truncate_beams(self, dp, beam_size=None):
         self.beam_values_are_intialised()
         beam_size = beam_size if beam_size else self.beam_size
+        if(self.useLLM):
+            return dict(sorted(dp.items(), key=lambda x: -self.llm.score(x[0]))[:beam_size])
         return dict(sorted(dp.items(), key=lambda x: -x[1])[:beam_size])
     def beam_values_are_intialised(self):
         if(self.beam_size is None or self.beam_depth is None or self.take_first_chars is None):
