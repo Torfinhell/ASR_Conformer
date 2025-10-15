@@ -60,9 +60,10 @@ def main(config):
     # build optimizer, learning rate scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = instantiate(config.optimizer, params=trainable_params)
-    lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer)
     if (epoch_len := config.trainer.get("epoch_len")) is None:
         epoch_len = len(dataloaders["train"])
+    grad_acum=config.trainer.get("grad_acum",1)
+    lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer, steps_per_epoch=epoch_len//grad_acum)
     trainer = Trainer(
         model=model,
         criterion=loss_function,
