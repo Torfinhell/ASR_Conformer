@@ -1,8 +1,10 @@
 train:
   _target_: src.datasets.LibrispeechDataset
   part: "train_all"
+  data_dir: ${trainer.librispeech_data_dir}
   instance_transforms: ${transforms.instance_transforms.train}
 test:
   _target_: src.datasets.LibrispeechDataset
   part: "test-other"
+  data_dir: ${trainer.librispeech_data_dir}
   instance_transforms: ${transforms.instance_transforms.inference}
