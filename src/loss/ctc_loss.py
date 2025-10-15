@@ -6,6 +6,8 @@ from torch.nn import CTCLoss
 
 
 class CTCLossWrapper(CTCLoss):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(zero_infinity=True,*args, **kwargs)
     def forward(
         self,
         log_probs: Tensor,

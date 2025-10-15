@@ -1,5 +1,5 @@
 _target_: src.logger.WandBWriter
-project_name: "test_run_2"
+project_name: HW_ASR
 entity: null
 run_name: "testing"
 mode: "online"

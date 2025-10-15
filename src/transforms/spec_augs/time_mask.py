@@ -28,5 +28,5 @@ class TimeMask(nn.Module):
 
     def mask_random_columns(self, spectrogram, n_colums):
         start = torch.randint(0, spectrogram.shape[2] - n_colums, (1,)).item()
-        spectrogram[:, :, : start : start + n_colums] = 0
+        spectrogram[:, : ,start : start + n_colums] = 0
         return spectrogram
