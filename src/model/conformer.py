@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import torch
 from torch import nn
 
@@ -7,18 +9,27 @@ from .conv import Conv, Conv2dSubsampling
 
 
 class ConformerBlock(nn.Module):
+    """Conformer block composing FFN, MHSA and ConvolutionBlock.
+
+    Input:
+    - x: Tensor with shape (B, L, D)
+
+    Returns
+    - Tensor with shape (B, L, D)
+    """
+
     def __init__(
         self,
-        model_dim,
-        ffn_expansion_factor=4,
-        ffn_dropout=0.1,
-        num_attention_heads=4,
-        dim_head=64,
-        conv_dropout=0.1,
-        conv_expansion_factor=2,
-        conv_kernel_size=31,
-        attention_dropout=0.1,
-    ):
+        model_dim: int,
+        ffn_expansion_factor: int = 4,
+        ffn_dropout: float = 0.1,
+        num_attention_heads: int = 4,
+        dim_head: int = 64,
+        conv_dropout: float = 0.1,
+        conv_expansion_factor: int = 2,
+        conv_kernel_size: int = 31,
+        attention_dropout: float = 0.1,
+    ) -> None:
         super().__init__()
         self.ffn1 = FeedForwardNet(model_dim, ffn_expansion_factor, ffn_dropout)
         self.mhsa = MultiHeadSelfAttention(
@@ -30,7 +41,7 @@ class ConformerBlock(nn.Module):
         self.ffn2 = FeedForwardNet(model_dim, ffn_expansion_factor, ffn_dropout)
         self.layer_norm = nn.LayerNorm(model_dim)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.ffn1(x) / 2
         x = x + self.mhsa(x)
         x = x + self.conv(x)
@@ -38,30 +49,33 @@ class ConformerBlock(nn.Module):
 
 
 class Conformer(nn.Module):
-    """
-    input: (B, L, D)
-    conv_subsampling: (B, L//4-1, D)
-    conv-block: (B, L//4-1, D)
+    """Conformer model producing probabilities(and log_probs also) for tokens.
 
+    Input:
+    - spectrogram: Tensor with shape (B, F, T)
+    - spectrogram_lengths: Tensor with shape (B,)
+
+    Returns
+    - dict with keys: log_probs, probs, log_probs_length
     """
 
     def __init__(
         self,
-        input_dim,
-        n_tokens,
-        num_attention_heads,
-        dim_head,
-        model_dim,
-        num_conformer_blocks,
-        conv_kernel_size=31,
-        input_dropout=0.1,
-        conv_dropout=0.1,
-        ffn_dropout=0.1,
-        attention_dropout=0.1,
-        ffn_expansion_factor=4,
-        conv_expansion_factor=2,
-        do_downsample=True,
-    ):
+        input_dim: int,
+        n_tokens: int,
+        num_attention_heads: int,
+        dim_head: int,
+        model_dim: int,
+        num_conformer_blocks: int,
+        conv_kernel_size: int = 31,
+        input_dropout: float = 0.1,
+        conv_dropout: float = 0.1,
+        ffn_dropout: float = 0.1,
+        attention_dropout: float = 0.1,
+        ffn_expansion_factor: int = 4,
+        conv_expansion_factor: int = 2,
+        do_downsample: bool = True,
+    ) -> None:
         super().__init__()
         self.do_downsample = do_downsample
         self.conv_subsampling = Conv2dSubsampling(1, 1)
@@ -85,7 +99,9 @@ class Conformer(nn.Module):
         )
         self.mlp = nn.Linear(model_dim, n_tokens, bias=False)
 
-    def forward(self, spectrogram, spectrogram_lengths, **batch):
+    def forward(
+        self, spectrogram: torch.Tensor, spectrogram_lengths: torch.Tensor, **batch: Any
+    ) -> Dict[str, torch.Tensor]:
         if self.do_downsample:
             subsampled_specs, spectrogram_lengths = self.conv_subsampling(
                 spectrogram.transpose(1, 2), spectrogram_lengths

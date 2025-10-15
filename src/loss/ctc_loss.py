@@ -1,3 +1,5 @@
+from typing import Dict
+
 import torch
 from torch import Tensor
 from torch.nn import CTCLoss
@@ -5,8 +7,13 @@ from torch.nn import CTCLoss
 
 class CTCLossWrapper(CTCLoss):
     def forward(
-        self, log_probs, log_probs_length, text_encoded, text_encoded_lengths, **batch
-    ) -> Tensor:
+        self,
+        log_probs: Tensor,
+        log_probs_length: Tensor,
+        text_encoded: Tensor,
+        text_encoded_lengths: Tensor,
+        **batch,
+    ) -> Dict[str, Tensor]:
         log_probs_t = torch.transpose(log_probs, 0, 1)
 
         loss = super().forward(

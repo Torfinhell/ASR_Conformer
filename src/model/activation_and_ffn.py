@@ -2,6 +2,11 @@ from torch import nn
 
 
 class GLUActivation(nn.Module):
+    """GLU activation wrapper.
+    Args:
+        dim: dimension along which to split the input into values and gates
+    """
+
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
@@ -12,6 +17,8 @@ class GLUActivation(nn.Module):
 
 
 class SwishActivation(nn.Module):
+    """Swish activation: x * sigmoid(x)"""
+
     def __init__(self):
         super().__init__()
 
@@ -20,6 +27,14 @@ class SwishActivation(nn.Module):
 
 
 class FeedForwardNet(nn.Module):
+    """feed-forward network used inside Conformer blocks.
+
+    Args:
+        model_dim: input dimension
+        expansion_factor: expansion factor for intermediate layer
+        ffn_dropout: dropout
+    """
+
     def __init__(
         self,
         model_dim,

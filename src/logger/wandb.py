@@ -64,7 +64,7 @@ class WandBWriter:
         # used to separate Partition1 and Partition2 metrics
         self.mode = ""
         self.timer = datetime.now()
-        self.table=None
+        self.table = None
 
     def set_step(self, step, mode="train"):
         """
@@ -217,12 +217,14 @@ class WandBWriter:
             table (DataFrame): table content.
         """
         if self.table is None:
-            table["step"]=self.step
-            self.table = self.wandb.Table(dataframe=table, log_mode='MUTABLE')
+            table["step"] = self.step
+            self.table = self.wandb.Table(dataframe=table, log_mode="MUTABLE")
         else:
-            table["step"]=self.step
+            table["step"] = self.step
             for _, row in table.iterrows():
-                self.table.add_data(*row, )
+                self.table.add_data(
+                    *row,
+                )
         self.wandb.log(
             {self._object_name(table_name): self.table},
             step=self.step,

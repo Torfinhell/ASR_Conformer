@@ -7,8 +7,9 @@ from omegaconf import OmegaConf
 
 from src.datasets.data_utils import get_dataloaders, get_texts_for_bpe
 from src.trainer import Trainer
-from src.utils.init_utils import set_random_seed, setup_saving_and_logging
 from src.transforms.utils import show_augs
+from src.utils.init_utils import set_random_seed, setup_saving_and_logging
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -26,7 +27,7 @@ def main(config):
     project_config = OmegaConf.to_container(config)
     logger = setup_saving_and_logging(config)
     writer = instantiate(config.writer, logger, project_config)
-    if(config.trainer.get("show_augs")==True):
+    if config.trainer.get("show_augs"):
         show_augs(config, writer)
         return
     if config.trainer.device == "auto":
@@ -59,10 +60,8 @@ def main(config):
     # build optimizer, learning rate scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = instantiate(config.optimizer, params=trainable_params)
-    lr_scheduler = instantiate(
-        config.lr_scheduler, optimizer=optimizer
-    )
-    if(epoch_len:=config.trainer.get("epoch_len")) is None:
+    lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer)
+    if (epoch_len := config.trainer.get("epoch_len")) is None:
         epoch_len = len(dataloaders["train"])
     trainer = Trainer(
         model=model,

@@ -1,7 +1,13 @@
-def lr_by_step( warmup_steps, model_dim):
-    peak_lr=00.5/(model_dim**(-0.5))
-    return lambda step:(
-        (step / warmup_steps)**(0.5) *peak_lr
-    if step < warmup_steps
-    else min(step**(-0.5), step * warmup_steps**(-1.5)) *  peak_lr
+from typing import Callable
+
+
+def lr_by_step(warmup_steps: int, model_dim: int) -> Callable[[int], float]:
+    peak_lr = 0.05 / (model_dim**0.5)
+    scale = peak_lr * (warmup_steps**0.5)
+    return (
+        lambda step: min(
+            (step if step > 0 else 1) ** (-0.5),
+            (step if step > 0 else 1) * warmup_steps ** (-1.5),
+        )
+        * scale
     )
