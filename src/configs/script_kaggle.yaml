@@ -5,7 +5,7 @@ defaults:
   - datasets: train_clean_360
   - dataloader: kaggle
   - transforms: only_instance
-  - text_encoder: BPEEncoder
+  - text_encoder: BpeEncoder
   - _self_
 partition_for_bpe:
   _target_: src.datasets.LibrispeechDataset
@@ -40,3 +40,4 @@ trainer:
   grad_acum: 1
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
   show_augs: False
+  librispeech_data_dir: "/kaggle/input"
