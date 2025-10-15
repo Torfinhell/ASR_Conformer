@@ -124,13 +124,13 @@ idna==3.11
     #   httpx
     #   requests
     #   yarl
-ipykernel==7.0.1
+ipykernel==7.0.0
     # via asr-conformer (pyproject.toml)
 ipython==9.6.0
     # via ipykernel
 ipython-pygments-lexers==1.1.1
     # via ipython
-isort==7.0.0
+isort==6.1.0
     # via asr-conformer (pyproject.toml)
 jedi==0.19.2
     # via ipython
