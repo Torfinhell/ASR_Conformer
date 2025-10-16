@@ -30,7 +30,9 @@ def main(config):
         device = config.inferencer.device
     texts = get_texts_for_bpe(config)
     # setup text_encoder
-    text_encoder = instantiate(config.text_encoder, texts=texts)
+    llm_model_config=config.text_encoder.get("llm_model")
+    llm_model=instantiate(llm_model_config) if llm_model_config is not None else None
+    text_encoder = instantiate(config.text_encoder, texts=texts, llm_model=llm_model)
 
     # setup data_loader instances
     # batch_transforms should be put on device
