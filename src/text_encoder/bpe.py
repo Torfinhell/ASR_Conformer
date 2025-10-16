@@ -86,5 +86,4 @@ class BpeEncoder(BaseTextEncoder):
         super().__init__(list(self.bpe_encoder.vocab), **kwargs)
 
     def get_splits(self, text) -> torch.Tensor:
-        text = self.normalize_text(text)
         return self.bpe_encoder.encode(text)

@@ -75,6 +75,7 @@ class Conformer(nn.Module):
         ffn_expansion_factor: int = 4,
         conv_expansion_factor: int = 2,
         do_downsample: bool = True,
+        unfreeze_last_layers:int=None
     ) -> None:
         super().__init__()
         self.do_downsample = do_downsample
@@ -97,6 +98,11 @@ class Conformer(nn.Module):
                 for _ in range(num_conformer_blocks)
             ]
         )
+        assert unfreeze_last_layers<=num_conformer_blocks
+        if unfreeze_last_layers is not None:
+            for conformer_block in self.conformer_blocks[:-unfreeze_last_layers]:
+                for param in conformer_block.parameters():
+                    param.requires_grad=False
         self.mlp = nn.Linear(model_dim, n_tokens, bias=False)
 
     def forward(

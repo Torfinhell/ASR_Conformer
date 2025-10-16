@@ -43,7 +43,8 @@ def main(config):
     dataloaders, batch_transforms = get_dataloaders(config, text_encoder, device)
 
     # build model architecture, then print to console
-    model = instantiate(config.model, n_tokens=len(text_encoder)).to(device)
+    model = instantiate(config.model, n_tokens=len(text_encoder), 
+        unfreeze_last_layers=config.trainer.get("unfreeze_last_layers")).to(device)
     logger.info(model)
 
     # get function handles of loss and metrics
@@ -62,14 +63,10 @@ def main(config):
     optimizer = instantiate(config.optimizer, params=trainable_params)
     if (epoch_len := config.trainer.get("epoch_len")) is None:
         epoch_len = len(dataloaders["train"])
-    grad_acum=config.trainer.get("grad_acum",1)
-    try:
-        lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer, 
-            steps_per_epoch=epoch_len//grad_acum
-        )
-    except Exception as e:
-        lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer, 
-        )
+    grad_acum=config.trainer.get("grad_acum")
+    lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer, 
+        steps_per_epoch=max(epoch_len//grad_acum, 1)
+    )
     trainer = Trainer(
         model=model,
         criterion=loss_function,

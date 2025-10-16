@@ -1,15 +1,14 @@
 import re
 from collections import defaultdict
 from string import ascii_lowercase
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, Optional, Any
 
 import numpy as np
 import torch
 from torch import Tensor
 
 from .llm_scorer import LLMToScore
-
-
+from hydra.utils import instantiate
 class BaseTextEncoder:
     """Base class for text encoders.
 
@@ -27,7 +26,7 @@ class BaseTextEncoder:
         beam_size: Optional[int] = None,
         beam_depth: Optional[int] = None,
         take_first_chars: Optional[int] = None,
-        use_LLM: bool = False,
+        llm_model: Any = None,
         **kwargs,
     ) -> None:
         self.beam_size = beam_size
@@ -46,9 +45,7 @@ class BaseTextEncoder:
 
         self.ind2token = dict(enumerate(self.vocab))
         self.token2ind = {v: k for k, v in self.ind2token.items()}
-        self.useLLM = use_LLM
-        if use_LLM:
-            self.llm = LLMToScore()
+        # self.llm = instantiate(llm_model) if llm_model else None
 
     def __len__(self) -> int:
         return len(self.vocab)
@@ -127,10 +124,10 @@ class BaseTextEncoder:
     def truncate_beams(self, dp: dict, beam_size: Optional[int] = None) -> dict:
         self.beam_values_are_intialised()
         beam_size = beam_size if beam_size else self.beam_size
-        if self.useLLM:
-            return dict(
-                sorted(dp.items(), key=lambda x: -self.llm.score(x[0]))[:beam_size]
-            )
+        # if self.llm is not None:
+        #     return dict(
+        #         sorted(dp.items(), key=lambda x: self.llm.score(x[0]))[:beam_size]
+        #     )
         return dict(sorted(dp.items(), key=lambda x: -x[1])[:beam_size])
 
     def beam_values_are_intialised(self):

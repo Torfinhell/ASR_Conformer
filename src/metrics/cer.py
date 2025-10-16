@@ -1,7 +1,5 @@
-from collections import defaultdict
-from typing import Iterable, List
 
-import numpy as np
+from typing import Iterable
 import torch
 
 from src.metrics.utils import calc_cer
