@@ -3,7 +3,7 @@ defaults:
   - writer: wandb
   - metrics: ArgMax_BeamSearch
   - datasets: custom_dataset
-  - dataloader: onebatchtest
+  - dataloader: local
   - transforms: basic
   - text_encoder: BpeEncoder
   - _self_
