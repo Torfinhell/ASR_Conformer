@@ -182,10 +182,12 @@ class Inferencer(BaseTrainer):
                 prob_vec=batch["probs"][i].clone().cpu().numpy()
                 length=batch["log_probs_length"][i].clone().cpu().detach().numpy()
                 dp = self.text_encoder.ctc_beam_search(prob_vec, length)
-                if len(self.text_encoder.truncate_beams(dp, 1).keys()):
-                    pred_text = list(self.text_encoder.truncate_beams(dp, 1).keys())[0][0]
+                beams = self.text_encoder.truncate_beams(dp, 1)
+                if beams:
+                    pred_text = list(beams.keys())[0][0]
                 else:
                     pred_text = ""
+                print(pred_text)
             output_stem = Path(batch["audio_path"][i]).stem
             if self.save_path is not None:
                 # you can use safetensors or other lib here
