@@ -3,7 +3,7 @@ from tqdm.auto import tqdm
 
 from src.metrics.tracker import MetricTracker
 from src.trainer.base_trainer import BaseTrainer
-
+from pathlib import Path
 
 class Inferencer(BaseTrainer):
     """
@@ -115,7 +115,7 @@ class Inferencer(BaseTrainer):
 
         # create Save dir
         if self.save_path is not None:
-            (self.save_path / part).mkdir(exist_ok=True, parents=True)
+            (self.save_path).mkdir(exist_ok=True, parents=True)
 
         with torch.no_grad():
             for batch_idx, batch in tqdm(
@@ -170,25 +170,27 @@ class Inferencer(BaseTrainer):
         # Some saving logic. This is an example
         # Use if you need to save predictions on disk
 
-        # batch_size = batch["logits"].shape[0]
-        # current_id = batch_idx * batch_size
+        batch_size = len(batch["audio_path"])
 
-        # for i in range(batch_size):
-        #     # clone because of
-        #     # https://github.com/pytorch/pytorch/issues/1995
-        #     logits = batch["logits"][i].clone()
-        #     label = batch["labels"][i].clone()
-        #     pred_label = logits.argmax(dim=-1)
+        for i in range(batch_size):
+            if not self.text_encoder.is_beam_search:
+                log_probs=batch["log_probs"][i].clone()
+                log_probs_length=batch["log_probs_length"][i].clone()
+                argmax_inds=log_probs[:log_probs_length].cpu().argmax(-1).numpy()
+                pred_text=self.text_encoder.ctc_decode(argmax_inds)
+            else:
+                prob_vec=batch["probs"][i].clone().cpu().numpy()
+                length=batch["log_probs_length"][i].clone().cpu().detach().numpy()
+                dp = self.text_encoder.ctc_beam_search(prob_vec, length)
+                if len(self.text_encoder.truncate_beams(dp, 1).keys()):
+                    pred_text = list(self.text_encoder.truncate_beams(dp, 1).keys())[0][0]
+                else:
+                    pred_text = ""
+            output_stem = Path(batch["audio_path"][i]).stem
+            if self.save_path is not None:
+                # you can use safetensors or other lib here
+                with open(f"{self.save_path}/{output_stem}.txt", "w") as file:
+                    file.write(pred_text)
 
-        #     output_id = current_id + i
-
-        #     output = {
-        #         "pred_label": pred_label,
-        #         "label": label,
-        #     }
-
-        #     if self.save_path is not None:
-        #         # you can use safetensors or other lib here
-        #         torch.save(output, self.save_path / part / f"output_{output_id}.pth")
 
         return batch
