@@ -5,7 +5,7 @@ defaults:
   - datasets: train_other_500
   - dataloader: kaggle
   - transforms: basic
-  - text_encoder: BpeEncoderWithLLM
+  - text_encoder: BpeEncoder
   - _self_
 partition_for_bpe:
   _target_: src.datasets.LibrispeechDataset
