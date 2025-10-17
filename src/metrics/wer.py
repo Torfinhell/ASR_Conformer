@@ -65,7 +65,7 @@ class BeamSearchWERMetric:
             target_text = self.text_encoder.normalize_text(target_text)
             dp = self.text_encoder.ctc_beam_search(prob_vec, length)
             beams = self.text_encoder.truncate_beams(dp, 1)
-            if len(beams.keys()):
+            if beams:
                 beam_pred = list(beams.keys())[0][0]
             else:
                 beam_pred = ""
