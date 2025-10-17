@@ -1,7 +1,7 @@
 #doesnt work yet
 _target_: src.text_encoder.BpeEncoder
 vocab_size: 40
-beam_size: 100
+beam_size: 10
 beam_depth: 1
 take_first_chars: 5
 llm_model:
