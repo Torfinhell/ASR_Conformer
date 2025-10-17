@@ -1,0 +1,42 @@
+defaults:
+  - model: conformer
+  - writer: wandb
+  - metrics: ArgMax_BeamSearch
+  - datasets: train_clean_360
+  - dataloader: local
+  - transforms: basic
+  - text_encoder: CTCEncoder
+  - _self_
+partition_for_bpe:
+  _target_: src.datasets.LibrispeechDataset
+  part: "train-clean-100"
+optimizer:
+  _target_: torch.optim.AdamW
+  lr: 1e-4
+  betas: [0.9, 0.98]
+  weight_decay: 1e-6
+  eps: 1e-9
+lr_scheduler:
+  _target_: torch.optim.lr_scheduler.OneCycleLR
+  max_lr: 0.0042
+  pct_start: 0.15
+  epochs: ${trainer.n_epochs}
+  anneal_strategy: cos
+loss_function:
+  _target_: src.loss.CTCLossWrapper
+trainer:
+  log_step: 50
+  n_epochs: 100
+  # epoch_len: 100
+  device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
+  resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
+  device: auto # device name or "auto"
+  override: False # if True, will override the previous run with the same name
+  monitor: "off" # "off" or "max/min metric_name", i.e. our goal is to maximize/minimize metric
+  save_period: 1 # checkpoint each save_period epochs in addition to the best epoch
+  early_stop: ${trainer.n_epochs} # epochs for early stopping
+  save_dir: "saved"
+  seed: 1
+  grad_acum: 4
+  sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
+  show_augs: False

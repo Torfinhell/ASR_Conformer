@@ -1,5 +1,5 @@
 _target_: src.text_encoder.BpeEncoder
 vocab_size: 40
-beam_size: 10
-beam_depth: 1
+beam_size: 3
+beam_depth: 2
 take_first_chars: 5

@@ -155,9 +155,7 @@ class Trainer(BaseTrainer):
                 target = self.text_encoder.normalize_text(target)
                 dp = self.text_encoder.ctc_beam_search(prob_vec, length)
                 if len(self.text_encoder.truncate_beams(dp, 1).keys()):
-                    beam_pred = list(self.text_encoder.truncate_beams(dp, 1).keys())[0][
-                        0
-                    ]
+                    beam_pred = list(self.text_encoder.truncate_beams(dp, 1).keys())[0][0]
                 else:
                     beam_pred = ""
                 target = self.text_encoder.normalize_text(target)
