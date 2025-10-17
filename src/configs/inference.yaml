@@ -1,13 +1,21 @@
 defaults:
-  - model: baseline
-  - metrics: example
-  - datasets: example_eval # we do not want to run inference on training data
-  - dataloader: example
-  - transforms: example
+  - model: conformer
+  - writer: wandb
+  - metrics: ArgMax_BeamSearch
+  - datasets: custom_dataset
+  - dataloader: onebatchtest
+  - transforms: basic
+  - text_encoder: BpeEncoder
   - _self_
+partition_for_bpe:
+  _target_: src.datasets.LibrispeechDataset
+  part: "train-clean-100"
 inferencer:
-  device_tensors: ["data_object", "labels"] # which tensors should be on device (ex. GPU)
+  device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
   device: auto # device name or "auto"
-  save_path: "example" # any name here, can be a dataset name
+  save_path: "example"
   seed: 1
-  from_pretrained: "saved/model_best.pth" # path to the pretrained model
+  sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
+  show_augs: False
+  from_pretrained: "saved/Run_kaggle/checkpoint-epoch17.pth"
+  dataset_dir: null #path where the dataset contains 
