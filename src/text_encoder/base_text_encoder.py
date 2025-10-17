@@ -45,8 +45,8 @@ class BaseTextEncoder:
 
         self.ind2token = dict(enumerate(self.vocab))
         self.token2ind = {v: k for k, v in self.ind2token.items()}
-        # self.llm = instantiate(llm_model) if llm_model else None
-
+        self.llm = llm_model
+        self.is_last=False
     def __len__(self) -> int:
         return len(self.vocab)
 
@@ -101,7 +101,10 @@ class BaseTextEncoder:
         for idx in range(0, len(probs), self.beam_depth):
             for step in range(min(self.beam_depth, len(probs) - idx)):
                 dp = self.expand_beam_and_merge_beams(dp, probs[idx + step], length)
+            if(idx+self.beam_depth>=len(probs)):
+                self.is_last=True
             dp = self.truncate_beams(dp)
+            self.is_last=False
         return dp
 
     def expand_beam_and_merge_beams(
@@ -124,10 +127,10 @@ class BaseTextEncoder:
     def truncate_beams(self, dp: dict, beam_size: Optional[int] = None) -> dict:
         self.beam_values_are_intialised()
         beam_size = beam_size if beam_size else self.beam_size
-        # if self.llm is not None:
-        #     return dict(
-        #         sorted(dp.items(), key=lambda x: self.llm.score(x[0]))[:beam_size]
-        #     )
+        if self.llm is not None and self.is_last:
+            return dict(
+                sorted(dp.items(), key=lambda x: self.llm.score(x[0]))[:beam_size]
+            )
         return dict(sorted(dp.items(), key=lambda x: -x[1])[:beam_size])
 
     def beam_values_are_intialised(self):
