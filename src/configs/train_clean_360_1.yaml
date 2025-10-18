@@ -16,14 +16,14 @@ optimizer:
 lr_scheduler:
   _target_: torch.optim.lr_scheduler.OneCycleLR
   max_lr: 0.0042
-  pct_start: 0.6
+  pct_start: 0.15
   epochs: ${trainer.n_epochs}  
   anneal_strategy: cos
 loss_function:
   _target_: src.loss.CTCLossWrapper
 trainer:
   log_step: 50
-  n_epochs: 12
+  n_epochs: 50
   # epoch_len: 100
   device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
@@ -37,4 +37,3 @@ trainer:
   grad_acum: 1
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
   show_augs: False
-  max_grad_norm: 5.0
