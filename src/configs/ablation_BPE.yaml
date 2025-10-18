@@ -17,7 +17,7 @@ lr_scheduler:
   _target_: torch.optim.lr_scheduler.OneCycleLR
   max_lr: 0.0042
   pct_start: 0.15
-  epochs: 50 #because we want the same learning rate as in train_clean_360_1.yaml 
+  epochs: 100 #because we want the same learning rate as in train_clean_360_1.yaml 
   anneal_strategy: cos
 loss_function:
   _target_: src.loss.CTCLossWrapper
