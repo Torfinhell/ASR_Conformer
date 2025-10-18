@@ -1,2 +1,2 @@
 _target_: src.text_encoder.CTCTextEncoder
-beam_size: 6
+beam_size: 10
