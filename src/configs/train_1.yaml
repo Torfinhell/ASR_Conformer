@@ -33,7 +33,7 @@ trainer:
   save_period: 1 # checkpoint each save_period epochs in addition to the best epoch
   early_stop: ${trainer.n_epochs} # epochs for early stopping
   save_dir: "saved"
-  seed: 1
+  seed: 42
   grad_acum: 1
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
   show_augs: False
