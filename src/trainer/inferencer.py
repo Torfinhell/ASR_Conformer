@@ -171,28 +171,23 @@ class Inferencer(BaseTrainer):
         # Use if you need to save predictions on disk
 
         batch_size = len(batch["audio_path"])
-
+        
         for i in range(batch_size):
+            log_prob_vec=batch["log_probs"][i].clone().cpu().numpy()
+            length=batch["log_probs_length"][i].clone().cpu().detach().numpy()
             if not self.text_encoder.is_beam_search:
-                log_probs=batch["log_probs"][i].clone()
-                log_probs_length=batch["log_probs_length"][i].clone()
-                argmax_inds=log_probs[:log_probs_length].cpu().argmax(-1).numpy()
+                argmax_inds=log_prob_vec[:length].cpu().argmax(-1).numpy()
                 pred_text=self.text_encoder.ctc_decode(argmax_inds)
             else:
-                prob_vec=batch["probs"][i].clone().cpu().numpy()
-                length=batch["log_probs_length"][i].clone().cpu().detach().numpy()
-                dp = self.text_encoder.ctc_beam_search(prob_vec, length)
+                dp = self.text_encoder.ctc_beam_search(log_prob_vec, length)
                 beams = self.text_encoder.truncate_beams(dp, 1)
                 if beams:
                     pred_text = list(beams.keys())[0][0]
                 else:
                     pred_text = ""
-                print(pred_text)
             output_stem = Path(batch["audio_path"][i]).stem
             if self.save_path is not None:
                 # you can use safetensors or other lib here
                 with open(f"{self.save_path}/{output_stem}.txt", "w") as file:
                     file.write(pred_text)
-
-
         return batch

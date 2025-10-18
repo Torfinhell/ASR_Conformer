@@ -14,7 +14,7 @@ class BaseTextEncoder:
 
     Args:
         alphabet: list of symbols
-        beam_size, beam_depth, take_first_chars: parametrs for beam-search
+        beam_size: parametr for beam-search
         use_LLM: LLM rescoring
     """
 
@@ -24,14 +24,10 @@ class BaseTextEncoder:
         self,
         alphabet: Optional[Iterable[str]] = None,
         beam_size: Optional[int] = None,
-        beam_depth: Optional[int] = None,
-        take_first_chars: Optional[int] = None,
         llm_model: Any = None,
         **kwargs,
     ) -> None:
         self.beam_size = beam_size
-        self.beam_depth = beam_depth
-        self.take_first_chars = take_first_chars
         try:
             self.beam_values_are_intialised()
             self.is_beam_search = True
@@ -93,35 +89,33 @@ class BaseTextEncoder:
         text = re.sub(r"[^a-z ]", "", text)
         return text
 
-    def ctc_beam_search(self, probs: np.ndarray, length: int):
+    def ctc_beam_search(self, log_probs: np.ndarray, length: int):
         self.beam_values_are_intialised()
         dp = {
             ("", self.EMPTY_TOK): 1.0,
         }
-        for idx in range(0, len(probs), self.beam_depth):
-            for step in range(min(self.beam_depth, len(probs) - idx)):
-                dp = self.expand_beam_and_merge_beams(dp, probs[idx + step], length)
-            if(idx+self.beam_depth>=len(probs)):
-                self.is_last=True
+        for idx in range(len(log_probs)):
+            dp = self.expand_beam_and_merge_beams(dp, log_probs[idx], length)
+            self.is_last=(idx==len(log_probs)-1)
             dp = self.truncate_beams(dp)
             self.is_last=False
         return dp
 
     def expand_beam_and_merge_beams(
-        self, dp: dict, cur_step_prob: np.ndarray, maxlen: int
+        self, dp: dict, cur_step_log_prob: np.ndarray, maxlen: int
     ) -> dict:
         self.beam_values_are_intialised()
         new_dp = defaultdict(float)
-        best_chars_sorted = np.argsort(cur_step_prob)[::-1]
-        for (pref, prev_char), prev_proba in dp.items():
-            for idx in best_chars_sorted[: self.take_first_chars]:
+        best_chars_sorted = np.argsort(cur_step_log_prob)[::-1]
+        for (pref, prev_char), prev_log_proba in dp.items():
+            for idx in best_chars_sorted:
                 char = self.ind2token[idx]
-                cur_proba = prev_proba * cur_step_prob[idx]
+                cur_log_proba = prev_log_proba + cur_step_log_prob[idx]
                 cur_pref = pref
                 if char != self.EMPTY_TOK and prev_char != char:
                     cur_pref += char
                 if len(cur_pref) <= maxlen:
-                    new_dp[(cur_pref, char)] += cur_proba
+                    new_dp[(cur_pref, char)] += cur_log_proba
         return new_dp
 
     def truncate_beams(self, dp: dict, beam_size: Optional[int] = None) -> dict:
@@ -136,8 +130,6 @@ class BaseTextEncoder:
     def beam_values_are_intialised(self):
         if (
             self.beam_size is None
-            or self.beam_depth is None
-            or self.take_first_chars is None
         ):
             raise ValueError(
                 "One of the beam_size, beam_depth or take_first_chars is not initialised in the config"
