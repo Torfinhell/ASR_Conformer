@@ -4,7 +4,7 @@ defaults:
   - metrics: ArgMax_BeamSearch
   - datasets: train_clean_360
   - dataloader: kaggle
-  - transforms: basic
+  - transforms: basic #only_instance?
   - text_encoder: BpeEncoder
   - _self_
 optimizer:
