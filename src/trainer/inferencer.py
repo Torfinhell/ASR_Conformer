@@ -186,8 +186,8 @@ class Inferencer(BaseTrainer):
                 else:
                     pred_text = ""
             output_stem = Path(batch["audio_path"][i]).stem
-            # if self.save_path is not None:
-            #     # you can use safetensors or other lib here
-            #     with open(f"{self.save_path}/{output_stem}.txt", "w") as file:
-            #         file.write(pred_text)
+            if self.save_path is not None:
+                # you can use safetensors or other lib here
+                with open(f"{self.save_path}/{output_stem}.txt", "w") as file:
+                    file.write(pred_text)
         return batch
