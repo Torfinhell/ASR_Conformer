@@ -7,9 +7,6 @@ defaults:
   - transforms: basic
   - text_encoder: BpeEncoder
   - _self_
-partition_for_bpe:
-  _target_: src.datasets.LibrispeechDataset
-  part: "train-clean-100"
 optimizer:
   _target_: torch.optim.AdamW
   lr: 0.0001

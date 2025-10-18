@@ -1,6 +1,6 @@
 #doesnt work yet
 _target_: src.text_encoder.BpeEncoder
-vocab_size: 40
+vocab_size: 100
 beam_size: 10
 llm_model:
   _target_: src.text_encoder.LLMToScore
