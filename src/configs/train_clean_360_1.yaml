@@ -2,7 +2,7 @@ defaults:
   - model: conformer
   - writer: wandb
   - metrics: ArgMax_BeamSearch
-  - datasets: train_all
+  - datasets: train_clean_360
   - dataloader: kaggle
   - transforms: basic
   - text_encoder: BpeEncoder
