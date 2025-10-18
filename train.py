@@ -47,7 +47,7 @@ def main(config):
     # build model architecture, then print to console
     model = instantiate(config.model, n_tokens=len(text_encoder), 
         unfreeze_last_layers=config.trainer.get("unfreeze_last_layers")).to(device)
-    logger.info(model)
+    # logger.info(model) TODO
 
     # get function handles of loss and metrics
     loss_function = instantiate(config.loss_function).to(device)
