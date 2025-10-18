@@ -34,7 +34,7 @@ def main(config):
         device = "cuda" if torch.cuda.is_available() else "cpu"
     else:
         device = config.trainer.device
-    texts = get_texts_for_bpe(config)
+    texts = get_texts_for_bpe()
     # setup text_encoder
     llm_model_config=config.text_encoder.get("llm_model")
     llm_model=instantiate(llm_model_config) if llm_model_config is not None else None
