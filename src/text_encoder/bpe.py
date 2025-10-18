@@ -85,7 +85,6 @@ class BpeEncoder(BaseTextEncoder):
         texts = [self.normalize_text(text) for text in texts]
         self.bpe_encoder.train(texts)
         bpe_vocab=sorted(list(self.bpe_encoder.vocab))
-        random.shuffle(bpe_vocab)
         super().__init__(bpe_vocab, **kwargs)
 
     def get_splits(self, text) -> torch.Tensor:
