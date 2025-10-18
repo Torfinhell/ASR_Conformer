@@ -119,10 +119,8 @@ class Conformer(nn.Module):
             )
         before_conformers = self.dropout(self.linear1(subsampled_specs))
         after_conformers = self.conformer_blocks(before_conformers)
-        probs = nn.functional.softmax(self.mlp(after_conformers), dim=-1)
         log_probs = nn.functional.log_softmax(self.mlp(after_conformers), dim=-1)
         return {
             "log_probs": log_probs,
-            "probs": probs,
             "log_probs_length": spectrogram_lengths,
         }

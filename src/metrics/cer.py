@@ -48,17 +48,17 @@ class BeamSearchCERMetric:
 
     def __call__(
         self,
-        probs: torch.Tensor,
+        log_probs: torch.Tensor,
         log_probs_length: torch.Tensor,
         text: Iterable[str],
         **batch,
     ) -> float:
         cers = []
-        predictions = probs.cpu().numpy()
+        predictions = log_probs.cpu().numpy()
         lengths = log_probs_length.cpu().detach().numpy()
-        for prob_vec, length, target_text in zip(predictions, lengths, text):
+        for log_prob_vec, length, target_text in zip(predictions, lengths, text):
             target_text = self.text_encoder.normalize_text(target_text)
-            dp = self.text_encoder.ctc_beam_search(prob_vec, length)
+            dp = self.text_encoder.ctc_beam_search(log_prob_vec, length)
             beams = self.text_encoder.truncate_beams(dp, 1)
             if len(beams.keys()):
                 beam_pred = list(beams.keys())[0][0]
