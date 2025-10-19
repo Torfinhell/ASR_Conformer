@@ -1,0 +1,4 @@
+defaults:
+  - _self_ 
+prediction_path: "path/to/predictions"
+ground_truth_path: "path/to/ground_truth"
