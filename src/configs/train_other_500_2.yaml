@@ -4,7 +4,7 @@ defaults:
   - metrics: ArgMax_BeamSearch
   - datasets: train_other_500
   - dataloader: kaggle
-  - transforms: onlyinstance
+  - transforms: basic
   - text_encoder: BpeEncoder
   - _self_
 optimizer:
@@ -17,14 +17,13 @@ lr_scheduler:
   _target_: torch.optim.lr_scheduler.OneCycleLR
   max_lr: 0.0042
   pct_start: 0.15
-  epochs: ${trainer.n_epochs}
+  epochs: 50
   anneal_strategy: cos
 loss_function:
   _target_: src.loss.CTCLossWrapper
 trainer:
   log_step: 50
   n_epochs: 5
-  # epoch_len: 100
   device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
   resum_from: null # null or path to the checkpoint dir with *.pth and config.yaml
   device: auto # device name or "auto"
