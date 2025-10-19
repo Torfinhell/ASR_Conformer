@@ -11,7 +11,7 @@ from src.transforms.wav_augs import Gain, ShiftPitch
 from omegaconf import OmegaConf
 from src.utils.init_utils import set_random_seed, setup_saving_and_logging
 
-@hydra.main(version_base=None, config_path="../scripts/configs", config_name="show_augs")
+@hydra.main(version_base=None, config_path="../src/configs", config_name="show_augs")
 def main(config):
     project_config = OmegaConf.to_container(config)
     logger = setup_saving_and_logging(config)

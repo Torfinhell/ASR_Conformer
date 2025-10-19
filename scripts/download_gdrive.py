@@ -1,7 +1,7 @@
 from pathlib import Path
 import gdown
 GDRIVE_URLS= {
-    "https://drive.google.com/file/d/1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm/view?usp=drive_link": "data/models/model_best.pth",
+    "https://drive.google.com/file/d/1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm/view?usp=drive_link": "data/models/checkpoint1.pth",
     # "": "saved/train_other_500_2/model_best.pth",
 }
 
