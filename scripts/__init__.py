@@ -1,2 +1,2 @@
 from scripts.get_texts_for_bpe import get_texts_for_bpe
-from download_gdrive import download_dataset, download_models
+from scripts.download_gdrive import download_dataset, download_models
