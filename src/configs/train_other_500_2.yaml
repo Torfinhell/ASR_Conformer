@@ -17,7 +17,7 @@ lr_scheduler:
   _target_: torch.optim.lr_scheduler.OneCycleLR
   max_lr: 0.0042
   pct_start: 0.15
-  epochs: ${trainer.n_epochs}
+  epochs: 50
   anneal_strategy: cos
 loss_function:
   _target_: src.loss.CTCLossWrapper
