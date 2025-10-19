@@ -4,7 +4,7 @@ defaults:
   - metrics: ArgMax_BeamSearch
   - datasets: train_other_500
   - dataloader: kaggle
-  - transforms: basic
+  - transforms: onlyinstance
   - text_encoder: BpeEncoder
   - _self_
 optimizer:
@@ -37,4 +37,4 @@ trainer:
   grad_acum: 1
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
   show_augs: False
-  unfreeze_last_layers: null
+  unfreeze_last_layers: 12

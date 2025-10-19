@@ -5,15 +5,15 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 
-from src.datasets.data_utils import get_dataloaders, get_texts_for_bpe
+from src.datasets.data_utils import get_dataloaders
+from scripts import get_texts_for_bpe
 from src.trainer import Trainer
-from src.transforms.utils import show_augs
 from src.utils.init_utils import set_random_seed, setup_saving_and_logging
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-@hydra.main(version_base=None, config_path="src/configs", config_name="baseline")
+@hydra.main(version_base=None, config_path="src/configs", config_name="local")
 def main(config):
     """
     Main script for training. Instantiates the model, optimizer, scheduler,
@@ -27,14 +27,11 @@ def main(config):
     project_config = OmegaConf.to_container(config)
     logger = setup_saving_and_logging(config)
     writer = instantiate(config.writer, logger, project_config)
-    if config.trainer.get("show_augs"):
-        show_augs(config, writer)
-        return
     if config.trainer.device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
     else:
         device = config.trainer.device
-    texts = get_texts_for_bpe(config)
+    texts = get_texts_for_bpe()
     # setup text_encoder
     llm_model_config=config.text_encoder.get("llm_model")
     llm_model=instantiate(llm_model_config) if llm_model_config is not None else None

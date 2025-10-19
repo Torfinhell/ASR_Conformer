@@ -125,7 +125,6 @@ class Trainer(BaseTrainer):
                 target = self.text_encoder.normalize_text(target)
                 wer = calc_wer(target, pred) * 100
                 cer = calc_cer(target, pred) * 100
-                print(target, pred, raw_pred)
                 rows[Path(audio_path).name] = {
                     "target": target,
                     "raw prediction": raw_pred,
@@ -146,7 +145,7 @@ class Trainer(BaseTrainer):
             ):
                 target = self.text_encoder.normalize_text(target)
                 dp = self.text_encoder.ctc_beam_search(log_prob_vec, length)
-                beams = self.text_encoder.truncate_beams(dp, 1)
+                beams = self.text_encoder.truncate_beams(dp, beam_size=1)
                 if beams:
                     beam_pred = list(beams.keys())[0][0]
                 else:

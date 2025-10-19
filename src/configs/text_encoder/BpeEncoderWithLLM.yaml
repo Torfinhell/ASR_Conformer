@@ -1,7 +1,8 @@
-#doesnt work yet
 _target_: src.text_encoder.BpeEncoder
 vocab_size: 40
 beam_size: 6
+beam_depth: 2
+take_first_tokens: 5
 llm_model:
   _target_: src.text_encoder.LLMToScore
   device: "cuda"

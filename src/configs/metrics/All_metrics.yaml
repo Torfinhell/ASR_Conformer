@@ -9,3 +9,11 @@ inference: # metrics that are calculated during inference (eval)
   - _target_: src.metrics.BeamSearchWERMetric
     text_encoder: ${text_encoder}
     name: "WER_(BeamSearch)"
+  # - _target_: src.metrics.BeamSearchCERMetric
+  #   text_encoder: ${text_encoder}
+  #   name: "CER_(BeamSearch)"
+  #   with_llm: True
+  # - _target_: src.metrics.BeamSearchWERMetric
+  #   text_encoder: ${text_encoder}
+  #   name: "WER_(BeamSearch)"
+  #   with_llm: True
