@@ -1,83 +1,122 @@
-diff --git a/scripts/download_gdrive.py b/scripts/download_gdrive.py
-index e69de29..f6e728b 100644
---- a/scripts/download_gdrive.py
-+++ b/scripts/download_gdrive.py
-@@ -0,0 +1,12 @@
-+from pathlib import Path
-+import gdown
-+GDRIVE_URLS= {
-+    "https://drive.google.com/file/d/1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm/view?usp=drive_link": "saved/train_clean_360_1/model_best.pth",
-+    # "": "saved/train_other_500_2/model_best.pth",
-+}
-+
-+def download_models_gzip():
-+    path_gzip=Path("data/models").absolute()
-+    path_gzip.mkdir(exist_ok=True, parents=True)
-+    for url, path in GDRIVE_URLS.items():
-+        gdown.download(url, path)
-diff --git a/scripts/show_augs.py b/scripts/show_augs.py
-index ee5bf1f..9781fc8 100644
---- a/scripts/show_augs.py
-+++ b/scripts/show_augs.py
-@@ -1,12 +1,21 @@
-+import sys
-+import sys
-+from pathlib import Path
-+sys.path.append(str(Path(__file__).resolve().parents[1]))
- from hydra.utils import instantiate
--
-+import hydra
- from src.logger.utils import plot_spectrogram
- from src.text_encoder import CTCTextEncoder
- from src.transforms.spec_augs import MaskFreq, TimeMask
- from src.transforms.wav_augs import Gain, ShiftPitch
-+from omegaconf import OmegaConf
-+from src.utils.init_utils import set_random_seed, setup_saving_and_logging
- 
--
--def show_augs(config, writer):
-+@hydra.main(version_base=None, config_path="../src/configs", config_name="show_augs")
-+def main(config):
-+    project_config = OmegaConf.to_container(config)
-+    logger = setup_saving_and_logging(config)
-+    writer = instantiate(config.writer, logger, project_config)
-     dataset = instantiate(config.datasets["train"], text_encoder=CTCTextEncoder())
-     for i in range(min(config.trainer.show_examples, len(dataset))):
-         writer.set_step(i, "")
-@@ -29,3 +38,6 @@ def show_augs(config, writer):
- def image_spectrogram(spectrogram, config):
-     image = plot_spectrogram(spectrogram, config)
-     return image
-+
-+if __name__ == "__main__":
-+    main()
-\ No newline at end of file
+diff --git a/save/testing/config.yaml b/save/testing/config.yaml
+index 4a43535..297268f 100644
+--- a/save/testing/config.yaml
++++ b/save/testing/config.yaml
+@@ -8,7 +8,7 @@ writer:
+   - loss
+   log_checkpoints: false
+   id_length: 8
+-  run_id: jhtfgn7b
++  run_id: l4zuikeb
+ datasets:
+   train:
+     _target_: src.datasets.LibrispeechDataset
+@@ -43,3 +43,4 @@ trainer:
+   show_examples: 6
+   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
+   save_dir: save
++  override: true
+diff --git a/save/testing/git_commit.txt b/save/testing/git_commit.txt
+index c6ebd0f..bcbd316 100644
+--- a/save/testing/git_commit.txt
++++ b/save/testing/git_commit.txt
+@@ -1 +1 @@
+-93f697a63c25cf25ff5b3bde8bfd8b9c798ba0c4
++345ba0de6021013bf19c3e17ee8aea1408ee044b
+diff --git a/save/testing/git_diff.patch b/save/testing/git_diff.patch
+index e50a29a..e69de29 100644
+--- a/save/testing/git_diff.patch
++++ b/save/testing/git_diff.patch
+@@ -1,83 +0,0 @@
+-diff --git a/scripts/download_gdrive.py b/scripts/download_gdrive.py
+-index e69de29..f6e728b 100644
+---- a/scripts/download_gdrive.py
+-+++ b/scripts/download_gdrive.py
+-@@ -0,0 +1,12 @@
+-+from pathlib import Path
+-+import gdown
+-+GDRIVE_URLS= {
+-+    "https://drive.google.com/file/d/1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm/view?usp=drive_link": "saved/train_clean_360_1/model_best.pth",
+-+    # "": "saved/train_other_500_2/model_best.pth",
+-+}
+-+
+-+def download_models_gzip():
+-+    path_gzip=Path("data/models").absolute()
+-+    path_gzip.mkdir(exist_ok=True, parents=True)
+-+    for url, path in GDRIVE_URLS.items():
+-+        gdown.download(url, path)
+-diff --git a/scripts/show_augs.py b/scripts/show_augs.py
+-index ee5bf1f..9781fc8 100644
+---- a/scripts/show_augs.py
+-+++ b/scripts/show_augs.py
+-@@ -1,12 +1,21 @@
+-+import sys
+-+import sys
+-+from pathlib import Path
+-+sys.path.append(str(Path(__file__).resolve().parents[1]))
+- from hydra.utils import instantiate
+--
+-+import hydra
+- from src.logger.utils import plot_spectrogram
+- from src.text_encoder import CTCTextEncoder
+- from src.transforms.spec_augs import MaskFreq, TimeMask
+- from src.transforms.wav_augs import Gain, ShiftPitch
+-+from omegaconf import OmegaConf
+-+from src.utils.init_utils import set_random_seed, setup_saving_and_logging
+- 
+--
+--def show_augs(config, writer):
+-+@hydra.main(version_base=None, config_path="../src/configs", config_name="show_augs")
+-+def main(config):
+-+    project_config = OmegaConf.to_container(config)
+-+    logger = setup_saving_and_logging(config)
+-+    writer = instantiate(config.writer, logger, project_config)
+-     dataset = instantiate(config.datasets["train"], text_encoder=CTCTextEncoder())
+-     for i in range(min(config.trainer.show_examples, len(dataset))):
+-         writer.set_step(i, "")
+-@@ -29,3 +38,6 @@ def show_augs(config, writer):
+- def image_spectrogram(spectrogram, config):
+-     image = plot_spectrogram(spectrogram, config)
+-     return image
+-+
+-+if __name__ == "__main__":
+-+    main()
+-\ No newline at end of file
+-diff --git a/src/configs/show_augs.yaml b/src/configs/show_augs.yaml
+-index 5dc0f3f..cb26c92 100644
+---- a/src/configs/show_augs.yaml
+-+++ b/src/configs/show_augs.yaml
+-@@ -1,23 +1,9 @@
+- defaults:
+--  - model: conformer
+-   - writer: wandb
+--  - metrics: ArgMax_BeamSearch
+-   - datasets: train_clean_360
+--  - dataloader: local
+-   - transforms: basic
+--  - text_encoder: CTCEncoder
+-   - _self_
+- trainer:
+-   show_examples: 6
+--  show_augs: True
+--  device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
+--  resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
+--  device: auto # device name or "auto"
+--  override: False # if True, will override the previous run with the same name
+--  monitor: "off" # "off" or "max/min metric_name", i.e. our goal is to maximize/minimize metric
+--  save_period: 5 # checkpoint each save_period epochs in addition to the best epoch
+--  early_stop: ${trainer.n_epochs} # epochs for early stopping
+--  save_dir: "saved"
+--  seed: 1
+--  grad_acum: 1
+-   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
+-+  save_dir: save
 diff --git a/src/configs/show_augs.yaml b/src/configs/show_augs.yaml
-index 5dc0f3f..cb26c92 100644
+index cb26c92..8698c9f 100644
 --- a/src/configs/show_augs.yaml
 +++ b/src/configs/show_augs.yaml
-@@ -1,23 +1,9 @@
- defaults:
--  - model: conformer
-   - writer: wandb
--  - metrics: ArgMax_BeamSearch
-   - datasets: train_clean_360
--  - dataloader: local
-   - transforms: basic
--  - text_encoder: CTCEncoder
-   - _self_
- trainer:
+@@ -7,3 +7,4 @@ trainer:
    show_examples: 6
--  show_augs: True
--  device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
--  resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
--  device: auto # device name or "auto"
--  override: False # if True, will override the previous run with the same name
--  monitor: "off" # "off" or "max/min metric_name", i.e. our goal is to maximize/minimize metric
--  save_period: 5 # checkpoint each save_period epochs in addition to the best epoch
--  early_stop: ${trainer.n_epochs} # epochs for early stopping
--  save_dir: "saved"
--  seed: 1
--  grad_acum: 1
    sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
-+  save_dir: save
+   save_dir: save
++  override: True

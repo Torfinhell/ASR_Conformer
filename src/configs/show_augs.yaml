@@ -7,3 +7,4 @@ trainer:
   show_examples: 6
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
   save_dir: save
+  override: True
