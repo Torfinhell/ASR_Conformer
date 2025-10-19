@@ -3,8 +3,8 @@ import warnings
 import hydra
 import torch
 from hydra.utils import instantiate
-
-from src.datasets.data_utils import get_dataloaders, get_texts_for_bpe
+from scripts import get_texts_for_bpe
+from src.datasets.data_utils import get_dataloaders
 from src.trainer import Inferencer
 from src.utils.init_utils import set_random_seed
 from src.utils.io_utils import ROOT_PATH
@@ -28,8 +28,8 @@ def main(config):
         device = "cuda" if torch.cuda.is_available() else "cpu"
     else:
         device = config.inferencer.device
-    texts = get_texts_for_bpe()
     # setup text_encoder
+    texts = get_texts_for_bpe()
     llm_model_config=config.text_encoder.get("llm_model")
     llm_model=instantiate(llm_model_config) if llm_model_config is not None else None
     text_encoder = instantiate(config.text_encoder, texts=texts, llm_model=llm_model)

@@ -90,9 +90,3 @@ def get_dataloaders(config, text_encoder, device):
 
     return dataloaders, batch_transforms
 
-def get_texts_for_bpe(config):
-    text_encoder = CTCTextEncoder()
-    texts = []
-    dataset = instantiate(config.partition_for_bpe, text_encoder=text_encoder)
-    texts += [dataset.get_text(ind) for ind in range(len(dataset))]
-    return texts

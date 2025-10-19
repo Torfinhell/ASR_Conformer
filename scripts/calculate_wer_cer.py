@@ -1,0 +1,23 @@
+from typing import Iterable
+
+import editdistance
+
+
+def calc_cer(target_text: str, predicted_text: str) -> float:
+    """
+    Compute character error rate (CER).
+    """
+    if(not len(target_text)):
+        return 1.0
+    return editdistance.eval(target_text, predicted_text) / len(target_text)
+
+
+def calc_wer(target_text: str, predicted_text: str) -> float:
+    """
+    Compute word error rate (WER).
+    """
+    if(not len(target_text)):
+        return 1.0
+    return editdistance.eval(target_text.split(), predicted_text.split()) / len(
+        target_text.split()
+    )

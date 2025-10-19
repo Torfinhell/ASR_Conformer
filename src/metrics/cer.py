@@ -42,10 +42,10 @@ class BeamSearchCERMetric:
         name: metric name
     """
 
-    def __init__(self, text_encoder, name: str) -> None:
+    def __init__(self, text_encoder, name: str,use_llm:bool=True) -> None:
         self.name = name
         self.text_encoder = text_encoder
-
+        self.use_llm=use_llm
     def __call__(
         self,
         log_probs: torch.Tensor,
@@ -59,7 +59,7 @@ class BeamSearchCERMetric:
         for log_prob_vec, length, target_text in zip(predictions, lengths, text):
             target_text = self.text_encoder.normalize_text(target_text)
             dp = self.text_encoder.ctc_beam_search(log_prob_vec, length)
-            beams = self.text_encoder.truncate_beams(dp, 1)
+            beams = self.text_encoder.truncate_beams(dp, beam_size=1, use_llm=self.use_llm)
             if len(beams.keys()):
                 beam_pred = list(beams.keys())[0][0]
             else:

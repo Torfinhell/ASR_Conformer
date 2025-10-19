@@ -180,7 +180,7 @@ class Inferencer(BaseTrainer):
                 pred_text=self.text_encoder.ctc_decode(argmax_inds)
             else:
                 dp = self.text_encoder.ctc_beam_search(log_prob_vec, length)
-                beams = self.text_encoder.truncate_beams(dp, 1)
+                beams = self.text_encoder.truncate_beams(dp, beam_size=1)
                 if beams:
                     pred_text = list(beams.keys())[0][0]
                 else:
