@@ -23,7 +23,7 @@ loss_function:
   _target_: src.loss.CTCLossWrapper
 trainer:
   log_step: 50
-  n_epochs: 6
+  n_epochs: 5
   device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
   resum_from: null # null or path to the checkpoint dir with *.pth and config.yaml
   device: auto # device name or "auto"
