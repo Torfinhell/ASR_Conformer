@@ -4,10 +4,12 @@ import zipfile
 
 GDRIVE_URLS = {
     "models": {
-        "https://drive.google.com/uc?id=1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm": "data/models/checkpoint1.pth",
+        "https://drive.google.com/uc?id=1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm": "data/models/checkpoint0.pth",  # bpeablation
+        "https://drive.google.com/uc?id=1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm": "data/models/checkpoint1.pth",  # train-clean-360
+        "https://drive.google.com/uc?id=1yPsuK5BZahriXlwl87TqY6WUuxO5WSH1": "data/models/checkpoint2.pth"   # train-other-500
     },
     "dataset": {
-        "https://drive.google.com/uc?id=1ZEqEX6s7lWvCqBRclKyRW4TwJQFcxH4F": "data/datasets/example",
+        "https://drive.google.com/uc?id=1ZEqEX6s7lWvCqBRclKyRW4TwJQFcxH4F": "data/datasets/example"
     }
 }
 
