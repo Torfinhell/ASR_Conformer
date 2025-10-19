@@ -1,4 +1,3 @@
 _target_: src.text_encoder.BpeEncoder
 vocab_size: 40
 beam_size: 6
-alphabet: ['b', 'ou', 'e', 'j', 'p', 'o', 'm', 'l', 'and', 'q', 're', 'an', 'x', 'i', 'd', 'a', 'z', 's', 't', 'k', 'to', 'y', 'en', 'c', 'u', 'the', ' ', 'ed', 'r', 'w', 'er', 'f', 'n', 'v', 'g', 'at', 'in', 'th', 'on', 'h']
