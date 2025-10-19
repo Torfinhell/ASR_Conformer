@@ -4,7 +4,7 @@ defaults:
   - metrics: ArgMax_BeamSearch
   - datasets: train_clean_360
   - dataloader: kaggle
-  - transforms: basic
+  - transforms: basic 
   - text_encoder: CTCEncoder
   - _self_
 optimizer:
@@ -17,17 +17,17 @@ lr_scheduler:
   _target_: torch.optim.lr_scheduler.OneCycleLR
   max_lr: 0.0042
   pct_start: 0.15
-  epochs: 100 #because we want the same learning rate as in train_clean_360_1.yaml 
+  epochs: 50 
   anneal_strategy: cos
 loss_function:
   _target_: src.loss.CTCLossWrapper
 trainer:
   log_step: 50
-  n_epochs: 4
+  n_epochs: 8
   # epoch_len: 100
   device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
-  device: auto # device name or "auto"
+  device: "cuda:0" # device name or "auto"
   override: False # if True, will override the previous run with the same name
   monitor: "min test_WER_(BeamSearch)" # "off" or "max/min metric_name", i.e. our goal is to maximize/minimize metric
   save_period: 1 # checkpoint each save_period epochs in addition to the best epoch
@@ -37,4 +37,3 @@ trainer:
   grad_acum: 1
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
   show_augs: False
-  max_grad_norm: 5.0

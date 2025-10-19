@@ -90,10 +90,9 @@ def get_dataloaders(config, text_encoder, device):
 
     return dataloaders, batch_transforms
 
-from src.datasets import LibrispeechDataset
-def get_texts_for_bpe():
+def get_texts_for_bpe(config):
     text_encoder = CTCTextEncoder()
     texts = []
-    dataset = LibrispeechDataset(part="train-clean-100", text_encoder=text_encoder)
+    dataset = instantiate(config.partition_for_bpe, text_encoder=text_encoder)
     texts += [dataset.get_text(ind) for ind in range(len(dataset))]
     return texts
