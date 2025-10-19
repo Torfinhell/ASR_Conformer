@@ -21,7 +21,7 @@ def calc_wer(target_text: str, predicted_text: str) -> float:
         target_text.split()
     )
 @hydra.main(
-    version_base=None, config_path="../scripts/configs", config_name="calc_metrics"
+    version_base=None, config_path="../src/configs", config_name="calc_metrics"
 )
 def main(config):
     prediction_dir = Path(config.prediction_path)
