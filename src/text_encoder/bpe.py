@@ -14,7 +14,7 @@ class BpeTrainer:
     def __init__(
         self, vocab_size: int = 100, min_alphabet: Iterable[str] | None = None
     ) -> None:
-        self.vocab = set(min_alphabet)
+        self.vocab = list(min_alphabet)
         self.vocab_size = vocab_size
         assert len(self.vocab) <= self.vocab_size
 
@@ -32,7 +32,7 @@ class BpeTrainer:
                 break
             self.update_split(*best_pair)
             self.merges[best_pair] = best_pair[0] + best_pair[1]
-            self.vocab.add(best_pair[0] + best_pair[1])
+            self.vocab.append(best_pair[0] + best_pair[1])
 
     def compute_pair_freqs(self) -> dict:
         pair_freqs = defaultdict(int)
@@ -84,11 +84,7 @@ class BpeEncoder(BaseTextEncoder):
         )
         texts = [self.normalize_text(text) for text in texts]
         self.bpe_encoder.train(texts)
-
-        bpe_vocab=sorted(list(self.bpe_encoder.vocab))
-        random.shuffle(bpe_vocab)
-        random.shuffle(bpe_vocab)
-        super().__init__(bpe_vocab, **kwargs)
+        super().__init__(self.bpe_encoder.vocab, **kwargs)
 
     def get_splits(self, text) -> torch.Tensor:
         return self.bpe_encoder.encode(text)
