@@ -2,11 +2,10 @@ defaults:
   - model: conformer
   - writer: wandb
   - metrics: ArgMax_BeamSearch #change
-  - datasets: inference_clean
+  - datasets: inference_other
   - dataloader: local
   - transforms: basic
-  # - text_encoder: CTCEncoder #change
-  - text_encoder: BpeEncoder
+  - text_encoder: BpeEncoder #change
   - _self_
 inferencer:
   device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
@@ -14,5 +13,4 @@ inferencer:
   save_path: "example"
   seed: 1
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
-  # from_pretrained: "saved/ablation_BPE/model_best.pth"
-  from_pretrained: "saved/train_clean_360_1/model_best.pth"
+  from_pretrained: null
