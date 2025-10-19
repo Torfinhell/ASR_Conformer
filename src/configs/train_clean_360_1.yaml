@@ -4,9 +4,12 @@ defaults:
   - metrics: ArgMax_BeamSearch
   - datasets: train_clean_360
   - dataloader: kaggle
-  - transforms: basic #only_instance?
+  - transforms: basic 
   - text_encoder: BpeEncoder
   - _self_
+partition_for_bpe:
+  _target_: src.datasets.LibrispeechDataset
+  part: "train-clean-100"
 optimizer:
   _target_: torch.optim.AdamW
   lr: 1e-4

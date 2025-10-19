@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import torch
 from torch import nn
@@ -75,7 +75,7 @@ class Conformer(nn.Module):
         ffn_expansion_factor: int = 4,
         conv_expansion_factor: int = 2,
         do_downsample: bool = True,
-        unfreeze_last_layers:int=None
+        unfreeze_last_layers:Optional[int]=None
     ) -> None:
         super().__init__()
         self.do_downsample = do_downsample
