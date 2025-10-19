@@ -1,15 +1,39 @@
 from pathlib import Path
 import gdown
-GDRIVE_URLS= {
-    "https://drive.google.com/file/d/1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm/view?usp=drive_link": "data/models/checkpoint1.pth",
-    # "": "saved/train_other_500_2/model_best.pth",
+import zipfile
+
+GDRIVE_URLS = {
+    "models": {
+        "https://drive.google.com/uc?id=1a1gjSXB3mMsNOHcdndhJW6ABZ8HzBEFm": "data/models/checkpoint1.pth",
+    },
+    "dataset": {
+        "https://drive.google.com/uc?id=1ZEqEX6s7lWvCqBRclKyRW4TwJQFcxH4F": "data/datasets/example",
+    }
 }
 
-def main():
-    path_gzip=Path("data/models").absolute()
+def download_models(gdrive_urls):
+    if "models" not in gdrive_urls:
+        raise ValueError("Cannot upload model files")
+    path_gzip = Path("data/models").absolute()
     path_gzip.mkdir(exist_ok=True, parents=True)
-    for url, path in GDRIVE_URLS.items():
+    for url, path in gdrive_urls["models"].items():
         gdown.download(url, path)
-        
-if __name__== "__main__":
-    main()
+
+def download_dataset(gdrive_urls):
+    if "dataset" not in gdrive_urls:
+        raise ValueError("Cannot upload dataset files")
+    path_gzip = Path("data/datasets").absolute()
+    path_gzip.mkdir(exist_ok=True, parents=True)
+    for url, path in gdrive_urls["dataset"].items():
+        zip_path = path + ".zip"
+        gdown.download(url, zip_path)
+        if zip_path.endswith('.zip'):
+            extract_folder = path
+            Path(extract_folder).mkdir(exist_ok=True, parents=True)
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_folder)
+            Path(zip_path).unlink()
+
+if __name__ == "__main__":
+    download_models(GDRIVE_URLS)
+    download_dataset(GDRIVE_URLS)
