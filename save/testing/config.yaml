@@ -8,7 +8,7 @@ writer:
   - loss
   log_checkpoints: false
   id_length: 8
-  run_id: jhtfgn7b
+  run_id: l4zuikeb
 datasets:
   train:
     _target_: src.datasets.LibrispeechDataset
@@ -43,3 +43,4 @@ trainer:
   show_examples: 6
   sample_rate: ${transforms.instance_transforms.train.get_spectrogram.sample_rate}
   save_dir: save
+  override: true
