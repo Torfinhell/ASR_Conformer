@@ -9,14 +9,14 @@ from src.text_encoder import CTCTextEncoder
 from src.transforms.spec_augs import MaskFreq, TimeMask
 from src.transforms.wav_augs import Gain, ShiftPitch
 from omegaconf import OmegaConf
-from src.utils.init_utils import set_random_seed, setup_saving_and_logging
+from src.utils.init_utils import setup_saving_and_logging
 
 @hydra.main(version_base=None, config_path="../src/configs", config_name="show_augs")
 def main(config):
     project_config = OmegaConf.to_container(config)
     logger = setup_saving_and_logging(config)
     writer = instantiate(config.writer, logger, project_config)
-    dataset = instantiate(config.datasets["train"], text_encoder=CTCTextEncoder())
+    dataset = instantiate(config.datasets["inference"], text_encoder=CTCTextEncoder())
     for i in range(min(config.trainer.show_examples, len(dataset))):
         writer.set_step(i, "")
         instance_data = dataset[i]

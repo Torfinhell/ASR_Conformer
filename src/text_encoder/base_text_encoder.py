@@ -8,8 +8,6 @@ import torch
 from torch import Tensor
 
 from .llm_scorer import LLMToScore
-from hydra.utils import instantiate
-from math import exp
 class BaseTextEncoder:
     """Base class for text encoders.
 
@@ -95,7 +93,7 @@ class BaseTextEncoder:
     def ctc_beam_search(self, log_probs: np.ndarray, length: int):
         self.beam_values_are_intialised()
         dp = {
-            ("", self.EMPTY_TOK): 0.0,
+            ("", self.EMPTY_TOK): 1.0,
         }
         for idx in range(0, len(log_probs), self.beam_depth):
             for step in range(min(self.beam_depth, len(log_probs) - idx)):

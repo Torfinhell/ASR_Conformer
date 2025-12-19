@@ -89,7 +89,7 @@ class Inferencer(BaseTrainer):
         Run inference on each partition.
 
         Returns:
-            part_logs (dict): part_logs[part_name] contains logs
+            part_logs ("data/models/checkpoint1.pth",dict): part_logs[part_name] contains logs
                 for the part_name partition.
         """
         part_logs = {}
@@ -162,10 +162,10 @@ class Inferencer(BaseTrainer):
 
         outputs = self.model(**batch)
         batch.update(outputs)
-
-        if metrics is not None:
-            for met in self.metrics["inference"]:
-                metrics.update(met.name, met(**batch))
+        if "text" in batch:
+            if metrics is not None:
+                for met in self.metrics["inference"]:
+                    metrics.update(met.name, met(**batch))
 
         # Some saving logic. This is an example
         # Use if you need to save predictions on disk

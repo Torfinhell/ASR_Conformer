@@ -81,14 +81,18 @@ class BaseDataset(Dataset):
         data_dict = self._index[ind]
         audio_path = data_dict["path"]
         audio = self.load_audio(audio_path)
-        text = data_dict["text"]
-        text_encoded = self.text_encoder.encode(text)
-        instance_data = {
+        instance_data={}
+        if "text" in data_dict:
+            text = data_dict["text"]
+            text_encoded = self.text_encoder.encode(text)
+            instance_data = {
+                "text": text,
+                "text_encoded": text_encoded[0],
+            }
+        instance_data.update({
             "audio": audio,
-            "text": text,
-            "text_encoded": text_encoded[0],
             "audio_path": audio_path,
-        }
+        })
         instance_data = self.preprocess_data(instance_data)
         spectrogram = self.get_spectrogram(instance_data["audio"])
         instance_data.update(
@@ -246,10 +250,10 @@ class BaseDataset(Dataset):
             assert "path" in entry, (
                 "Each dataset item should include field 'path'" " - path to audio file."
             )
-            assert "text" in entry, (
-                "Each dataset item should include field 'text'"
-                " - object ground-truth transcription."
-            )
+            # assert "text" in entry, (
+            #     "Each dataset item should include field 'text'"
+            #     " - object ground-truth transcription."
+            # )
             assert "audio_len" in entry, (
                 "Each dataset item should include field 'audio_len'"
                 " - length of the audio."
