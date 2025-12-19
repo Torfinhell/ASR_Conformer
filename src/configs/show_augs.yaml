@@ -1,6 +1,6 @@
 defaults:
   - writer: wandb
-  - datasets: train_clean_360
+  - datasets: inference_clean
   - transforms: basic
   - _self_
 trainer:

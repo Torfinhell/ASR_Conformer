@@ -34,19 +34,21 @@ def collate_fn(dataset_items: list[dict]):
     }
     result_batch = {
         "spectrogram": pad_tensors(batch_by_column["spectrogram"]),
-        "text_encoded": pad_tensors(batch_by_column["text_encoded"]),
         "audio_path": batch_by_column["audio_path"],
         "audio": batch_by_column["audio"],
-        "text": batch_by_column["text"],
-    }
-    result_batch.update(
-        {
-            "text_encoded_lengths": torch.tensor(
-                [text.shape[0] for text in batch_by_column["text_encoded"]]
-            ),
-            "spectrogram_lengths": torch.tensor(
+        "spectrogram_lengths": torch.tensor(
                 [spec.shape[1] for spec in batch_by_column["spectrogram"]]
             ),
-        }
-    )
+    }
+    if "text" in batch_by_column and "text_encoded" in batch_by_column:
+        result_batch.update(
+            {
+                "text": batch_by_column["text"],
+                "text_encoded": pad_tensors(batch_by_column["text_encoded"]),
+                "text_encoded_lengths": torch.tensor(
+                [text.shape[0] for text in batch_by_column["text_encoded"]]
+            ),
+
+            }
+        )
     return result_batch

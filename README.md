@@ -10,37 +10,23 @@
 
 ## About
 
-This repository contains a solution for solving ASR task with PyTorch using template for Hse course. This template branch is a part of the [HSE DLA course](https://github.com/markovka17/dla) ASR homework.  
+This repository contains a solution for solving ASR task with PyTorch
 
-See the task assignment [here](https://github.com/markovka17/dla/tree/2024/hw1_asr).
+See the task assignment [here](https://github.com/markovka17/dla/tree/2025/hw1_asr).
 
 ## Installation
 
 Follow these steps to install the project:
 
-0. (Optional) Create and activate new environment using [`conda`](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html) or `venv` ([`+pyenv`](https://github.com/pyenv/pyenv)).
+0. (Optional) Create and activate new environment using [`conda`](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html).
 
    a. `conda` version:
 
    ```bash
    # create env
-   conda create -n project_env python=PYTHON_VERSION
-
+   conda create -n hifi_gan python=3.11
    # activate env
-   conda activate project_env
-   ```
-
-   b. `venv` (`+pyenv`) version:
-
-   ```bash
-   # create env
-   ~/.pyenv/versions/PYTHON_VERSION/bin/python3 -m venv project_env
-
-   # alternatively, using default python version
-   python3 -m venv project_env
-
-   # activate env
-   source project_env/bin/activate
+   conda activate hifi_gan
    ```
 
 1. Install all required packages
@@ -56,20 +42,40 @@ Follow these steps to install the project:
    ```
 
 ## How To Use
-
-To train a model, run the following command:
-
-```bash
-uv run train.py -cn=CONFIG_NAME HYDRA_CONFIG_ARGUMENTS
+To download models checkpoints and test dataset run following:
+```
+!uv run scripts/download_gdrive.py
 ```
 
-Where `CONFIG_NAME` is a config from `src/configs` and `HYDRA_CONFIG_ARGUMENTS` are optional arguments.
+## How To Use
 
-To run inference (evaluate the model or save predictions):
+To train best model, run the following commands:
 
 ```bash
-uv run inference.py HYDRA_CONFIG_ARGUMENTS
+uv run train.py HYDRA_CONFIG_ARGUMENTS -cn=train_clean_360_1
 ```
+and then to finetune afterwards:
+```bash
+uv run train.py +trainer.from_pretrained=PREV_CHECKPOINT OTHER_HYDRA_CONFIG_ARGUMENTS -cn=train_other_500_2
+```
+## How To Inference and Evaluate
+To evaluate the model run:
+```bash
+!uv run inference.py \
+   inferencer.from_pretrained={model_path} text_encoder=CTCEncoder \
+   inferencer.save_path={output_dir} text_encoder.beam_size=100 \
+   -cn=inference_all_metrics
+```
+To save predictions run:
+```bash
+!uv run inference.py dataloader=onebatchtest \
+            inferencer.dataset_dir={dataset_dir} \
+            inferencer.from_pretrained={model_path} \
+            inferencer.save_path={gt_name} \
+            text_encoder=CTCEncoder -cn=inference
+
+```
+
 
 ## Credits
 
